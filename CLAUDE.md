@@ -72,17 +72,17 @@ happyeggs/
 - 커밋: conventional commits(`feat:` `fix:` `refactor:` `docs:` `chore:`) — 작게 나눈다.
 - 브랜치: 문서는 `main`, 구현은 `feat/m{n}-*` (예: `feat/m0-skeleton`).
 
-## 실행 커맨드 (전부 예정 — M0 구현 후 활성화)
+## 실행 커맨드
 
 아래 커맨드는 M0 스캐폴드 커밋(`feat/m0-skeleton` 브랜치) 이후 동작한다. M0 스펙은
 [docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) (상태: Approved).
 
 | 커맨드 | 용도 | 상태 |
 |---|---|---|
-| `npm run dev` | Vite 개발 서버 (`-- --host`로 동일 네트워크 폰 테스트) | 예정 |
-| `npm run build` | 정적 빌드 (Vercel / GH Pages / itch.io 겨냥) | 예정 |
-| `npm run test` | Vitest — 순수 로직만 | 예정 |
-| `npm run lint` | eslint + prettier | 예정 |
+| `npm run dev` | Vite 개발 서버 (`--host` 포함 — 동일 네트워크 폰 테스트) | ✅ 동작 |
+| `npm run build` | 타입체크 + 정적 빌드 (Vercel / GH Pages / itch.io 겨냥) | ✅ 동작 |
+| `npm run test` | Vitest — 순수 로직만 | ✅ 동작 |
+| `npm run lint` | eslint (+ `npm run format` — prettier) | ✅ 동작 |
 
 ## 관련 문서
 

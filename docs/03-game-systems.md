@@ -5,7 +5,7 @@
 
 > [!NOTE]
 > **현재 상태**
-> 코드는 **0줄**이다. 아래의 모듈명(`CookingModel.ts` 등)은 M0 스펙의 **파일 계획**이며, M1+ 시스템의 구현 파일은 각 마일스톤 스펙에서 확정한다. 아키텍처 경계(순수 모델/뷰 분리)는 [02-architecture.md](02-architecture.md) 참조.
+> M0 구현이 `feat/m0-skeleton`에서 진행 중이다. 아래의 모듈명(`CookingModel.ts` 등)은 M0 스펙의 **파일 계획**이며, M1+ 시스템의 구현 파일은 각 마일스톤 스펙에서 확정한다. 아키텍처 경계(순수 모델/뷰 분리)는 [02-architecture.md](02-architecture.md) 참조.
 
 ---
 

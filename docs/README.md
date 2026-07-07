@@ -13,7 +13,7 @@
 - GDD에 없는 판단이 필요하면 임의로 정하지 않고 [DECISIONS.md](DECISIONS.md)에 [DECISION] 항목으로 올려 디렉터 확인을 받습니다. 확정된 결정은 [adr/](adr/README.md)로 승격합니다.
 
 > [!NOTE]
-> 현재 상태(2026-07-07): **코드 0줄, 문서 단계.** M0 스펙([specs/M0-skeleton.md](specs/M0-skeleton.md))은 **Approved**(2026-07-07, M0-1~5 기본안 채택) — `feat/m0-skeleton`에서 구현이 진행됩니다. 실행 명령(`npm run dev` 등)은 M0 스캐폴드 커밋 이후 동작합니다.
+> 현재 상태(2026-07-07): M0 스펙([specs/M0-skeleton.md](specs/M0-skeleton.md)) **Approved**(M0-1~5 기본안 채택) — `feat/m0-skeleton` 브랜치에서 구현 진행 중. 실행 명령(`npm run dev` 등)은 스캐폴드 커밋부터 동작합니다.
 
 ---
 
@@ -111,7 +111,7 @@
 1. **미결 [DECISION]을 확정처럼 쓰지 않는다.** 미결/확정 현황의 단일 출처는 [DECISIONS.md](DECISIONS.md)다. 미결 항목을 본문에서 언급할 때는 반드시 `[DECISION-XX]` / `[M0-X]` 태그와 "기본안"임을 밝힌다.
 2. **GDD 수치를 왜곡하지 않는다.** 밸런스·판정·감점 수치는 GDD와 승인된 스펙에 있는 값만 인용한다. 모르면 `[!IMPORTANT]`(확인 필요) 콜아웃을 둔다.
 3. **스펙 상태를 명시한다.** 모든 스펙 문서는 머리말에 Proposed / Approved / Implemented / Verified 중 하나를 표기하고, 상태 전이는 SDD 루프([specs/README.md](specs/README.md))를 따른다.
-4. **코드가 없는 동안 실행 명령을 현재형으로 쓰지 않는다.** `npm run dev/build/test/lint`는 M0 구현 전까지 "예정"으로 표기한다.
+4. **실행 명령은 실제로 동작하는 것만 현재형으로 쓴다.** 아직 없는 기능·명령은 "예정"과 도입 마일스톤을 함께 표기한다.
 
 ---
 

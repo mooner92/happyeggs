@@ -47,7 +47,7 @@ ADR의 핵심 원칙:
 ```mermaid
 flowchart TB
     GDD["GDD.md (SSOT)"]
-    subgraph Code["코드 (예정 — 현재 0줄, 문서 단계)"]
+    subgraph Code["코드 (feat/m0-skeleton에서 구현 중)"]
         Stack["엔진·언어·빌드·테스트 체인<br/>(ADR-0001)"]
         Bus["씬 로컬 상태 + typed EventBus<br/>src/systems/ (ADR-0002)"]
     end

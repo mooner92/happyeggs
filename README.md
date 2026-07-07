@@ -75,25 +75,25 @@ flowchart LR
 ## 빠른 시작 (Quickstart)
 
 > [!IMPORTANT]
-> **아직 실행할 것이 없다.** 현재는 문서 단계(코드 0줄)이며, 아래 명령은 전부 **예정**이다. M0 스펙 승인 → 스캐폴드 커밋 후 실측 값으로 확정해 이 절을 갱신한다.
+> **M0 스캐폴드부터 실행 가능하다** — 구현은 `feat/m0-skeleton` 브랜치에서 진행 중이다. Node 22+ 기준.
 
 ```bash
 git clone https://github.com/mooner92/happyeggs.git
 cd happyeggs
 
-npm install               # (예정) 의존성 설치
-npm run dev               # (예정) 로컬 개발 서버 (Vite)
-npm run dev -- --host     # (예정) 동일 네트워크 폰 브라우저에서 세로 9:16 확인
-npm run test              # (예정) Vitest — 순수 로직만
-npm run lint              # (예정) eslint + prettier
-npm run build             # (예정) 정적 빌드 (Vercel / GitHub Pages / itch.io 겨냥)
+npm install               # 의존성 설치
+npm run dev               # 로컬 개발 서버 (Vite, --host 포함)
+npm run dev               # 동일 네트워크 폰 브라우저에서 세로 9:16 확인 (터미널의 Network URL 접속)
+npm run test              # Vitest — 순수 로직만
+npm run lint              # eslint
+npm run build             # 타입체크 + 정적 빌드 (Vercel / GitHub Pages / itch.io 겨냥)
 ```
 
 ---
 
 ## 레포 구조
 
-현재는 문서만 존재한다. `src/`는 [M0 스펙](docs/specs/M0-skeleton.md) 승인 후 생성될 **예정** 구조다.
+`src/`는 [M0 스펙](docs/specs/M0-skeleton.md)의 파일 계획 구조이며, `feat/m0-skeleton` 브랜치에서 구현이 진행 중이다.
 
 ```text
 happyeggs/
@@ -108,10 +108,10 @@ happyeggs/
 │   ├── adr/             #   확정 결정 기록 (ADR 0001~0008)
 │   └── specs/           #   마일스톤 스펙 (M0-skeleton.md — Approved)
 └── src/                 # 🛠 M0 구현 — feat/m0-skeleton 브랜치에서 작성
-    ├── main.ts          #   (예정) Phaser.Game 부트스트랩
-    ├── scenes/          #   (예정) Boot / Preload / Game / Result
-    ├── systems/         #   (예정) 순수 TS — Phaser import 금지 (Vitest 대상)
-    ├── ui/              #   (예정) 뷰·디버그 HUD
+    ├── main.ts          #   Phaser.Game 부트스트랩
+    ├── scenes/          #   Boot / Preload / Game / Result
+    ├── systems/         #   순수 TS — Phaser import 금지 (Vitest 대상)
+    ├── ui/              #   뷰·디버그 HUD
     └── data/            #   balance(튜닝 수치) / palette / layout / assets — 분리 구조는 [ADR-0008](docs/adr/0008-balance-file-scope.md)
 ```
 
