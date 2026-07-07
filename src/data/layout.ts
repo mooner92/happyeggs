@@ -33,3 +33,23 @@ export const TEXT = {
   hudSize: '22px',
   buttonSize: '28px',
 } as const;
+
+/** 팬 도형 표현 비율 (팬 반경 대비) */
+export const PAN_SHAPE = {
+  rim: 1.06,
+  handleWidth: 0.16,
+  /** 손잡이 시작점 — 팬 중심 기준 (반경 대비 비율) */
+  handleFrom: { x: -0.6, y: 0.6 },
+} as const;
+
+/** 손·뒤집개 도형 크기 (px, 표현 값) */
+export const HAND_SHAPE = {
+  w: 120,
+  h: 96,
+  outline: 5,
+  spatulaW: 18,
+  bladeW: 92,
+  bladeH: 66,
+  /** 뒤집개 날 위치 — 오른손에서 팬 방향으로 뻗는 비율 */
+  spatulaReach: 0.45,
+} as const;
