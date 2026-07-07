@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import { DEBUG, EGG } from '../data/balance';
+import { DEBUG, EGG, HEAT } from '../data/balance';
 import { COOK_STATE_STYLE, PALETTE } from '../data/palette';
+import { CookingModel } from '../systems/CookingModel';
 import type { BlobState } from '../systems/EggBlobModel';
 import { createBlob, stepSpread } from '../systems/EggBlobModel';
 import { bus } from '../systems/events';
@@ -15,13 +16,15 @@ const SEED_STEP = 7919;
 interface EggEntity {
   readonly id: number;
   readonly blob: BlobState;
+  readonly cooking: CookingModel;
   readonly view: EggView;
+  smokeCriticalEmitted: boolean;
 }
 
 /**
  * 코어 플레이 씬 — M0 오케스트레이터.
- * 게임 규칙은 순수 모델(src/systems/)이 들고, 이 씬은 입력 배선·모델 tick·뷰 갱신만 한다.
- * 익힘 색 변화(커밋 11), 디버그 HUD(커밋 12)가 이어서 배선된다.
+ * 게임 규칙은 순수 모델(src/systems/)이 들고, 이 씬은 입력 배선·모델 tick·뷰 갱신·버스 발행만 한다.
+ * M0 종단: cook:smokeCritical 발행까지 — 스프링클러 실패 처리·씬 전환은 M3 소관.
  */
 export class GameScene extends Phaser.Scene {
   private pan!: PanView;
@@ -52,9 +55,13 @@ export class GameScene extends Phaser.Scene {
     if (this.eggs.length >= DEBUG.MAX_EGGS) return;
 
     const id = this.nextEggId++;
-    const blob = createBlob(SEED_BASE + id * SEED_STEP, pointer.x, pointer.y);
-    const view = new EggView(this, EGG.VERTEX_COUNT);
-    this.eggs.push({ id, blob, view });
+    this.eggs.push({
+      id,
+      blob: createBlob(SEED_BASE + id * SEED_STEP, pointer.x, pointer.y),
+      cooking: new CookingModel(),
+      view: new EggView(this, EGG.VERTEX_COUNT),
+      smokeCriticalEmitted: false,
+    });
     bus.emit('egg:cracked', { eggId: id, x: pointer.x, y: pointer.y });
   }
 
@@ -63,7 +70,21 @@ export class GameScene extends Phaser.Scene {
     const dtSec = Math.min(deltaMs / 1000, DEBUG.MAX_DT_SEC);
     for (const egg of this.eggs) {
       stepSpread(egg.blob, dtSec);
-      egg.view.draw(egg.blob, COOK_STATE_STYLE.RAW); // 상태별 색은 커밋 11에서 배선
+
+      // M0 열원은 가스 고정 — 스테이지별 열원은 M3 스테이지 데이터에서 온다
+      const before = egg.cooking.state;
+      const transitions = egg.cooking.update(dtSec, HEAT.gas.base);
+      let from = before;
+      for (const to of transitions) {
+        bus.emit('cook:stateChanged', { eggId: egg.id, from, to });
+        from = to;
+      }
+      if (egg.cooking.smokeCriticalFired && !egg.smokeCriticalEmitted) {
+        egg.smokeCriticalEmitted = true;
+        bus.emit('cook:smokeCritical', { eggId: egg.id });
+      }
+
+      egg.view.draw(egg.blob, COOK_STATE_STYLE[egg.cooking.state]);
     }
   }
 }
