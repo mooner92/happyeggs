@@ -41,3 +41,8 @@ export const HAND_STYLE = { fill: 0xf5b63f, line: 0xd9902a } as const;
 
 /** 디버그 HUD 텍스트 색 (CSS 색 문자열 — Phaser Text 스타일용) */
 export const HUD_TEXT = { normal: '#9be564', warning: '#ff5544' } as const;
+
+/** 숫자 색 → CSS 문자열 (Phaser Text 스타일용) */
+export function css(color: number): string {
+  return `#${color.toString(16).padStart(6, '0')}`;
+}

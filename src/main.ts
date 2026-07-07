@@ -1,14 +1,23 @@
 import Phaser from 'phaser';
+import { DESIGN } from './data/layout';
+import { PALETTE } from './data/palette';
+import { BootScene } from './scenes/BootScene';
+import { PreloadScene } from './scenes/PreloadScene';
+import { GameScene } from './scenes/GameScene';
+import { ResultScene } from './scenes/ResultScene';
 
-// M0 커밋 1: 빈 캔버스 부트. 씬 골격은 커밋 4에서, 해상도 상수는 커밋 3의 data/layout.ts로 이동한다.
+// 세로 9:16 논리 해상도 720×1280(ADR-0004), FIT + 중앙 정렬. 입력은 pointerdown 기준(GDD §2).
 new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
-  backgroundColor: '#2b2b2b',
+  backgroundColor: PALETTE.bg,
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 720, // ADR-0004 — 커밋 3에서 layout.DESIGN으로 대체
-    height: 1280,
+    width: DESIGN.width,
+    height: DESIGN.height,
   },
+  input: { activePointers: 2 },
+  render: { roundPixels: true },
+  scene: [BootScene, PreloadScene, GameScene, ResultScene],
 });

@@ -26,3 +26,10 @@ export const PAN_HANDLE_RATIO = 0.85;
 export function toPx(a: Anchor): { x: number; y: number } {
   return { x: a.x * DESIGN.width, y: a.y * DESIGN.height };
 }
+
+/** 텍스트 크기 (표현 값) */
+export const TEXT = {
+  resultSize: '36px',
+  hudSize: '22px',
+  buttonSize: '28px',
+} as const;
