@@ -92,12 +92,30 @@ describe('EggBlobModel', () => {
     }
   });
 
-  it('노른자는 중심 근처의 원이다 (오프셋 상한 준수)', () => {
-    for (const seed of [1, 2, 3, 100]) {
+  it('노른자 유클리드 오프셋이 문서 상한(YOLK_OFFSET_RATIO)을 넘지 않는다', () => {
+    for (let seed = 0; seed < 200; seed++) {
       const blob = createBlob(seed, 10, 20);
       const dist = Math.hypot(blob.yolk.x - 10, blob.yolk.y - 20);
-      expect(dist).toBeLessThanOrEqual(CFG.YOLK_OFFSET_RATIO * CFG.INITIAL_RADIUS * Math.SQRT2 + 1e-6);
+      // 원판 상한 — √2 여유 없이 문서 계약 그대로
+      expect(dist).toBeLessThanOrEqual(CFG.YOLK_OFFSET_RATIO * CFG.INITIAL_RADIUS + 1e-6);
       expect(blob.yolk.r).toBeCloseTo(CFG.INITIAL_RADIUS * CFG.YOLK_RADIUS_RATIO, 6);
+    }
+  });
+
+  it('링 이음매(각도 0)의 정점 점프가 내부 정점과 같은 상한을 따른다 (seam 회귀)', () => {
+    // 각 인접쌍의 반경 차 최대값 대비, 이음매(마지막→0) 점프가 유독 크지 않아야 한다
+    for (const seed of [1, 7, 42, 56, 999]) {
+      const blob = createBlob(seed, 0, 0);
+      stepSpread(blob, CFG.SPREAD_SECONDS);
+      const n = CFG.VERTEX_COUNT;
+      const radii = Array.from({ length: n }, (_, i) =>
+        Math.hypot(blob.verts[i * 2]!, blob.verts[i * 2 + 1]!),
+      );
+      const jumps = radii.map((r, i) => Math.abs(radii[(i + 1) % n]! - r));
+      const seamJump = jumps[n - 1]!; // 정점 n-1 → 0
+      const internalMax = Math.max(...jumps.slice(0, n - 1));
+      // 이음매가 내부 최대 점프의 1.2배를 넘지 않으면 링이 닫힌 것으로 본다
+      expect(seamJump).toBeLessThanOrEqual(internalMax * 1.2 + 1e-6);
     }
   });
 

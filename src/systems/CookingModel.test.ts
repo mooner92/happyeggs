@@ -116,6 +116,41 @@ describe('CookingModel', () => {
     expect(m.smokeElapsed).toBeCloseTo(1, 9);
   });
 
+  it('진입 틱 유예 가산은 열원 계수로 환산된다 (coeff≠1, ADR-0005의 /coeff 고정)', () => {
+    // lava(2.5)로 SMOKE 임계를 doneness 5 초과분만큼 넘긴다 → 실시간 경과 = 5/2.5 = 2초
+    const coeff = 2.5;
+    const dt = (COOK.SMOKE_AT + 5) / coeff; // 이 틱으로 doneness = SMOKE_AT + 5
+    const m = new CookingModel();
+    m.update(dt, coeff);
+    expect(m.state).toBe('SMOKE');
+    expect(m.smokeElapsed).toBeCloseTo(5 / coeff, 9); // /coeff 삭제 뮤턴트를 잡는다
+  });
+
+  it('진입 직전+직후 분할과 큰 dt 1회의 smokeElapsed가 일치한다', () => {
+    const coeff = 1.3;
+    const total = (COOK.SMOKE_AT + 3) / coeff;
+    const once = new CookingModel();
+    once.update(total, coeff);
+    const split = new CookingModel();
+    const toEdge = COOK.SMOKE_AT / coeff;
+    split.update(toEdge - 0.01, coeff); // SMOKE 직전
+    split.update(total - (toEdge - 0.01), coeff); // 진입 + 나머지
+    expect(split.smokeElapsed).toBeCloseTo(once.smokeElapsed, 6);
+  });
+
+  it('heatCoeff 비유한값(NaN/Infinity)은 no-op — 상태를 오염시키지 않는다', () => {
+    const m = new CookingModel();
+    m.update(COOK.SET_AT, GAS); // SET 진입
+    const d = m.doneness;
+    expect(m.update(1, NaN)).toEqual([]);
+    expect(m.update(1, Infinity)).toEqual([]);
+    expect(m.update(1, -Infinity)).toEqual([]);
+    expect(m.doneness).toBe(d);
+    expect(Number.isFinite(m.doneness)).toBe(true);
+    expect(m.state).toBe('SET');
+    expect(m.progressInState).toBeGreaterThanOrEqual(0);
+  });
+
   it('dt ≤ 0 은 no-op', () => {
     const m = new CookingModel();
     expect(m.update(0, GAS)).toEqual([]);

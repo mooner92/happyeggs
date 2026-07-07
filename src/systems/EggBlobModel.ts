@@ -43,11 +43,17 @@ export function createBlob(seed: number, cx: number, cy: number, cfg: BlobConfig
   const n = cfg.VERTEX_COUNT;
   const noise = createNoise1D(seed);
 
-  // 정점별 형태 계수 — 링 위 노이즈 샘플 후 원형(wrap) 이웃 스무딩
+  // 정점별 형태 계수 — 링을 노이즈 도메인에서 닫는다.
+  // 1D 밸류 노이즈는 비주기라 t=0과 t=FREQ가 무관 → 각도 0에 이음매가 생긴다.
+  // noise(t)와 noise(t−FREQ)를 w=t/FREQ로 블렌드해 seam 양끝을 noise(0)으로 일치시킨다.
+  const F = cfg.NOISE_FREQ;
   const shape = new Float32Array(n);
   for (let i = 0; i < n; i++) {
-    shape[i] = noise((i / n) * cfg.NOISE_FREQ);
+    const t = (i / n) * F;
+    const w = t / F; // = i/n
+    shape[i] = noise(t) * (1 - w) + noise(t - F) * w;
   }
+  // 이후 원형(wrap) 이웃 스무딩
   for (let pass = 0; pass < cfg.SMOOTHING_PASSES; pass++) {
     const prev = Float32Array.from(shape);
     for (let i = 0; i < n; i++) {
@@ -57,12 +63,15 @@ export function createBlob(seed: number, cx: number, cy: number, cfg: BlobConfig
     }
   }
 
-  // 노른자 — 중심 근처 원, 시드 기반 오프셋 (M0는 렌더만, 파손 로직은 M1+)
+  // 노른자 — 중심 근처 원, 시드 기반 오프셋 (M0는 렌더만, 파손 로직은 M1+).
+  // 각도+거리로 샘플해 유클리드 오프셋이 maxOffset을 넘지 않게 한다(원판 상한).
   const yolkNoise = createNoise1D(seed ^ 0x5eed);
   const maxOffset = cfg.YOLK_OFFSET_RATIO * cfg.INITIAL_RADIUS;
+  const yolkAngle = yolkNoise(0.25) * Math.PI; // [-π, π]
+  const yolkDist = Math.abs(yolkNoise(7.75)) * maxOffset; // [0, maxOffset]
   const yolk: Yolk = {
-    x: cx + yolkNoise(0.25) * maxOffset,
-    y: cy + yolkNoise(7.75) * maxOffset,
+    x: cx + Math.cos(yolkAngle) * yolkDist,
+    y: cy + Math.sin(yolkAngle) * yolkDist,
     r: cfg.INITIAL_RADIUS * cfg.YOLK_RADIUS_RATIO,
   };
 

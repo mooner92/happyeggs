@@ -70,7 +70,8 @@ export class CookingModel {
    * `heatCoeff = 0`이면 doneness 정지(M5 "불 끄기" 대비). SMOKE 유예는 실시간 가산.
    */
   update(dtSec: number, heatCoeff: number): CookState[] {
-    if (dtSec <= 0 || !Number.isFinite(dtSec)) return [];
+    // dt·계수 모두 유한값 가드 — 비유한값 1회가 doneness/smokeElapsed를 영구 오염(NaN 전파)하는 걸 막는다
+    if (dtSec <= 0 || !Number.isFinite(dtSec) || !Number.isFinite(heatCoeff)) return [];
     const coeff = Math.max(0, heatCoeff);
     const before = this.state;
 
