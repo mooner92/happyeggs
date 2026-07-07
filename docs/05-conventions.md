@@ -5,7 +5,7 @@
 
 > [!NOTE]
 > **현재 상태**
-> 코드 0줄, 문서 단계다. 아래의 소스 경로(`src/…`)와 명령은 M0 스펙([specs/M0-skeleton.md](specs/M0-skeleton.md), 상태: Proposed)의 계획이며 전부 **예정**이다.
+> 코드 0줄, 문서 단계다. 아래의 소스 경로(`src/…`)와 명령은 M0 스펙([specs/M0-skeleton.md](specs/M0-skeleton.md), 상태: Approved)의 계획이며, `feat/m0-skeleton` 스캐폴드 커밋 이후 동작한다.
 
 ---
 
@@ -49,9 +49,8 @@
 - 상수 객체는 `as const`로 선언해 리터럴 타입을 고정한다.
 - 튜닝은 balance.ts 수정만으로 끝나야 한다 — 수치를 바꾸려고 시스템 코드를 여는 순간 규약 위반이다.
 
-> [!WARNING]
-> **"한 파일"의 해석 범위는 미결 (M0-5)**
-> 기본안은 **게임플레이 튜닝 수치만 balance.ts, 색은 palette.ts·좌표는 layout.ts 분리**(M5 스킨/열화상 대비)이지만 아직 디렉터 승인 전이다 — [DECISIONS.md](DECISIONS.md).
+> [!NOTE]
+> "한 파일"의 해석 범위는 **게임플레이 튜닝 수치만 balance.ts, 색은 palette.ts·좌표는 layout.ts 분리**로 확정되었다(M5 스킨/열화상 대비) — [adr/0008](adr/0008-balance-file-scope.md) (원 항목 M0-5).
 
 ## 5. 에셋 규약
 
@@ -85,8 +84,8 @@ GDD 첫머리 규약: 문서와 충돌하거나 문서에 없는 판단은 **임
 3. 확정 시 [docs/adr/](adr/README.md)에 **ADR로 승격**(번호 부여) + DECISIONS.md의 해당 항목 상태 갱신(확정·ADR 링크).
 
 > [!IMPORTANT]
-> **확인 필요: 현재 미결 전부 열려 있음**
-> GDD §16의 DECISION-01~07과 M0 스펙의 M0-1~5는 **전부 미결**이며 기본안만 있다. 어느 문서에서든 확정된 것처럼 쓰지 않는다.
+> **확인 필요: GDD §16의 DECISION-01~07은 미결**
+> 기본안만 있는 상태로, 어느 문서에서든 확정된 것처럼 쓰지 않는다. M0-1~5는 2026-07-07 확정(ADR-0004~0008) — 현황은 [DECISIONS.md](DECISIONS.md).
 
 ## 8. 문서 동기화 (SDD 루프 ⑤)
 

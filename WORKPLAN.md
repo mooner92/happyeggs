@@ -21,8 +21,8 @@
 > 마일스톤마다 SDD 루프가 반복된다: ① 스펙 작성(`docs/specs/M{n}-*.md`) → ② 디렉터 승인(미결 결정 확정 → `docs/adr/` 승격) → ③ 구현(브랜치 `feat/m{n}-*`, 작은 conventional commits) → ④ 검증(인수 조건 체크리스트 + Vitest) → ⑤ 문서 동기화(스펙 as-built·WORKPLAN 체크·README 상태) → **정지·리뷰 대기**. 각 마일스톤 종료 시 반드시 정지하고 디렉터 리뷰를 기다린다. 상세는 [docs/specs/README.md](docs/specs/README.md).
 
 > [!NOTE]
-> **진행 상태(2026-07-07):** 코드 0줄, 문서 단계. 문서 체계(README / CLAUDE / WORKPLAN / docs / adr / specs) 구축 완료. M0 스펙([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md))은 작성 완료 · **디렉터 승인 대기(Proposed)**.
-> 미결 결정 **12건**(GDD §16 DECISION-01~07 + M0 스펙 M0-1~5)이 [docs/DECISIONS.md](docs/DECISIONS.md)에 정리돼 있다 — 전부 기본안만 있는 미확정 상태.
+> **진행 상태(2026-07-07):** 코드 0줄, 문서 단계. 문서 체계(README / CLAUDE / WORKPLAN / docs / adr / specs) 구축 완료. M0 스펙([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md))은 **Approved**(2026-07-07 승인, M0-1~5 기본안 일괄 채택 → ADR-0004~0008) — `feat/m0-skeleton`에서 구현 진행.
+> 미결 결정: GDD §16 **DECISION-01~07(7건)은 미결**, M0-1~5는 확정(ADR-0004~0008) — [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ---
 
@@ -53,19 +53,18 @@ flowchart TD
     class M7 gated;
 ```
 
-## M0 — 뼈대 (스펙: Proposed)
+## M0 — 뼈대 (스펙: Approved — 구현 진행)
 
 ### 목표
 빈 레포에 Vite + Phaser 3 + TS(strict) 뼈대를 세우고, 폰 브라우저에서 **"계란을 깨고 타는 것"을 눈으로 확인 가능한** 상태까지 만든다.
 순수 모델/뷰 분리(`systems/`·`data/`는 Phaser import 금지)와 결정론(dt 주입 · 시드 난수)을 처음부터 강제한다.
 
 ### 선행조건
-- [ ] M0 스펙([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md)) 디렉터 승인 (Proposed → Approved)
-- [ ] 미결 결정 M0-1~5 확정 → `docs/adr/` 승격 (논리 해상도 / SMOKE 3초 시계 기준 / dt 클램프 / 노이즈 구현 / balance.ts 해석 범위)
+- [x] M0 스펙([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md)) 디렉터 승인 (Proposed → Approved, 2026-07-07)
+- [x] 미결 결정 M0-1~5 확정 → `docs/adr/` 승격 (ADR-0004~0008: 720×1280 / 실시간 / 0.1s 클램프 / 자체 밸류 노이즈 / 튜닝 수치만 balance.ts)
 
 > [!IMPORTANT]
-> M0-1~5는 전부 **기본안(추천)만 있는 미결** 상태다 — 720×1280 / 실시간 / 0.1s 클램프 / 자체 밸류 노이즈 / 튜닝 수치만 balance.ts(색·좌표는 palette·layout 분리).
-> GDD §16의 DECISION-01~07도 미결. 확정 전에 확정된 것처럼 구현하지 않는다. 목록은 [docs/DECISIONS.md](docs/DECISIONS.md).
+> **확인 필요: GDD §16의 DECISION-01~07은 여전히 미결**이다(주로 M1·M4에서 필요). 확정 전에 확정된 것처럼 구현하지 않는다 — [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ### 작업 체크리스트 (커밋 단위 — M0 스펙 §7, 각각 빌드·테스트 그린 유지)
 - [ ] 1. `chore: scaffold vite + phaser3 + ts(strict) + vitest + eslint/prettier` — 모바일 메타(touch-action 등)·vite base 포함
@@ -92,7 +91,7 @@ flowchart TD
 - [ ] 스펙 as-built 갱신 + 이 문서 체크 + README 상태 갱신 후 정지·리뷰 대기
 
 ### 리스크
-- **dt 스파이크**: 탭 이탈 후 복귀 시 큰 dt 1회로 계란이 즉시 전소 → dt 클램프(M0-3, 기본안 0.1s)로 방어. 값 확정 전 착수 금지.
+- **dt 스파이크**: 탭 이탈 후 복귀 시 큰 dt 1회로 계란이 즉시 전소 → dt 클램프(0.1s — [ADR-0006](docs/adr/0006-dt-clamp-background.md))로 방어.
 - **Graphics 비용**: 블롭 폴리곤(계란 최대 3개 × 정점 48개)을 매 프레임 다시 그림 → 디버그 HUD의 fps로 폰 실측 상시 확인.
 - **모바일 뷰포트**: 주소창 개입·더블탭 줌·스크롤 → `100dvh`, `touch-action: none`, `user-scalable=no`로 차단(M0 스펙 §4.2의 index.html 항목).
 
@@ -184,7 +183,7 @@ flowchart TD
 ## 관련 문서
 
 - 문서 인덱스: [docs/README.md](docs/README.md) · SDD 프로세스: [docs/specs/README.md](docs/specs/README.md)
-- M0 스펙 (Proposed): [docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) · 미결 결정: [docs/DECISIONS.md](docs/DECISIONS.md)
+- M0 스펙 (Approved): [docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) · 미결 결정: [docs/DECISIONS.md](docs/DECISIONS.md)
 - 프로젝트 개요/작업 규칙: [README.md](README.md) · [CLAUDE.md](CLAUDE.md) · SSOT: [GDD.md](GDD.md)
 
 | 이전 | 다음 |

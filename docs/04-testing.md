@@ -5,7 +5,7 @@
 
 > [!NOTE]
 > **현재 상태**
-> 코드 0줄, 문서 단계다. 아래의 모든 실행 명령과 테스트 목록은 **예정**이며, M0 테스트의 상세는 [specs/M0-skeleton.md](specs/M0-skeleton.md)(상태: Proposed) §8을 따른다.
+> 코드 0줄, 문서 단계다. 아래의 모든 실행 명령과 테스트 목록은 **예정**이며, M0 테스트의 상세는 [specs/M0-skeleton.md](specs/M0-skeleton.md)(상태: Approved) §8을 따른다.
 
 ---
 

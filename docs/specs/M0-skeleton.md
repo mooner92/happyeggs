@@ -1,17 +1,17 @@
 # M0 스펙 — 뼈대 (Skeleton)
 
 > [GDD](../../GDD.md) §13 **M0 — 뼈대**의 구현 스펙이다. 3개 관점(순수 로직 / Phaser 아키텍처 / 확장성-YAGNI) 독립 드래프트와 2중 교차 비평(GDD 충실도 / 스코프·리스크)을 거친 종합안을 [스펙 템플릿](README.md) 구조로 정식 이관했다.
-> **상태는 Proposed — 디렉터 승인 전까지 구현에 착수하지 않는다.**
+> **상태는 Approved — 2026-07-07 디렉터 승인(M0-1~5 기본안 일괄 채택 → ADR-0004~0008). 구현 진행.**
 
 ## 머리말
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | **Proposed (디렉터 승인 대기)** |
+| 상태 | **Approved** (2026-07-07 승인 — M0-1~5 기본안 일괄 채택) |
 | 작성일 | 2026-07-07 |
 | 근거 GDD 절 | [GDD](../../GDD.md) §13 M0 (보조: §2 성능 예산 · §3 스택 · §5 템포 · §6 계란 시스템 · §14 아트 규약) |
-| 구현 브랜치 | `feat/m0-skeleton` — 승인 후 생성 (현재 코드 0줄) |
-| 미결 [DECISION] | M0-1 ~ M0-5 — [../DECISIONS.md](../DECISIONS.md) 표 2 (§10 요약 참조) |
+| 구현 브랜치 | `feat/m0-skeleton` |
+| [DECISION] | M0-1 ~ M0-5 **전부 확정**(ADR-0004~0008) — [../DECISIONS.md](../DECISIONS.md) 표 2 (§10 참조) |
 
 ## 1. 배경
 
@@ -26,7 +26,7 @@ GDD가 정한 인수 조건: "`npm run dev`로 폰 브라우저에서 계란 깨
 
 - 프로젝트 스캐폴드: Vite + Phaser 3 + TypeScript(strict) + Vitest + eslint/prettier ([ADR-0001](../adr/0001-tech-stack-phaser-vite-ts.md))
 - 씬 4종 배선: Boot → Preload → Game (+ Result 스텁, 디버그 버튼으로만 진입)
-- 세로 9:16 FIT 스케일링 + 논리 해상도 (M0-1 확정 필요)
+- 세로 9:16 FIT 스케일링 + 논리 해상도 720×1280 ([ADR-0004](../adr/0004-logical-resolution-720x1280.md))
 - 양손 + 팬 placeholder 도형 렌더 (GDD §14: programmer art)
 - `pointerdown` 탭 → 팬 위 계란 깨기(최대 3개) → 블롭 생성·퍼짐 (GDD §6.1)
 - 익힘 FSM `RAW → SET → PERFECT_WINDOW → OVERDONE → BURNT → SMOKE` — placeholder 색 변화로 표현 (GDD §6.2)
@@ -74,7 +74,7 @@ happyeggs/
    ├─ systems/           # ★ 순수 TS — Phaser import 금지, Vitest 대상 (테스트 co-locate)
    │  ├─ EventBus.ts     # 자체 경량 typed pub/sub (on/off/emit, emit 중 off 안전)
    │  ├─ events.ts       # 이벤트 이름/페이로드 타입 사전 — M0 3종
-   │  ├─ noise.ts        # 시드 기반 1D 밸류 노이즈, 출력 [-1,1] (M0-4)
+   │  ├─ noise.ts        # 시드 기반 1D 밸류 노이즈, 출력 [-1,1] (ADR-0007)
    │  ├─ CookingModel.ts # 익힘 FSM — §6 전이표
    │  └─ EggBlobModel.ts # 방사형 정점 블롭: 생성/퍼짐/이웃 스무딩 (in-place 갱신)
    ├─ ui/
@@ -86,8 +86,8 @@ happyeggs/
    └─ data/
       ├─ balance.ts      # ★ 밸런스 수치 전부 (COOK / HEAT / EGG / DEBUG, as const)
       ├─ assets.ts       # 에셋 키 매니페스트 — 빈 목록 + AssetEntry 타입 (GDD §14)
-      ├─ palette.ts      # placeholder 5색 + 익힘 상태별 색 (RAW 알파 포함) — M0-5
-      └─ layout.ts       # 논리 해상도 + 중앙 액션 칼럼 기준 배치 비율 (DECISION-05 대비) — M0-5
+      ├─ palette.ts      # placeholder 5색 + 익힘 상태별 색 (RAW 알파 포함) — ADR-0008
+      └─ layout.ts       # 논리 해상도 + 중앙 액션 칼럼 기준 배치 비율 (DECISION-05 대비) — ADR-0008
 ```
 
 > [!NOTE]
@@ -101,7 +101,7 @@ happyeggs/
 | `systems/EggBlobModel.ts` | `createBlob(seed, cx, cy, cfg)`, `stepSpread(blob, dtSec)` — 정점 배열 in-place 갱신(per-frame 할당 0), `getPolygon(blob)` — 각도 순서 보존(M1 채점 전제를 계약 테스트로 고정) |
 | `systems/noise.ts` | `createNoise1D(seed): (t) => number` — 자체 구현(의존성 0), 동일 시드 = 동일 출력 |
 | `systems/EventBus.ts` + `events.ts` | typed pub/sub + `interface GameEvents` M0 3종: `egg:cracked`, `cook:stateChanged`, `cook:smokeCritical`. `domain:action` 네이밍 규약 명문화, 향후 도메인(`flip:*` 등)은 주석 예약만. 씬 shutdown 시 리스너 해제 규약은 [../02-architecture.md](../02-architecture.md)에 명시 ([ADR-0002](../adr/0002-custom-eventbus-no-state-lib.md)) |
-| `data/balance.ts` | `COOK`(임계 5종 + SPRINKLER_DELAY, 단위: 초), `HEAT: Record<HeatSourceId, {base, jitter?}>` — GDD §6.2 5종 계수 전부 선기입(스펙 값), 캠프파이어 ±0.3은 jitter 필드. M0는 gas만 사용. `EGG`(VERTEX_COUNT=48 등), `DEBUG`(MAX_EGGS=3, MAX_DT_SEC=0.1 — **M0-3 미결, 기본안**, HUD_INTERVAL_MS=250) |
+| `data/balance.ts` | `COOK`(임계 5종 + SPRINKLER_DELAY, 단위: 초), `HEAT: Record<HeatSourceId, {base, jitter?}>` — GDD §6.2 5종 계수 전부 선기입(스펙 값), 캠프파이어 ±0.3은 jitter 필드. M0는 gas만 사용. `EGG`(VERTEX_COUNT=48 등), `DEBUG`(MAX_EGGS=3, MAX_DT_SEC=0.1([ADR-0006](../adr/0006-dt-clamp-background.md)), HUD_INTERVAL_MS=250) |
 | `scenes/GameScene.ts` | pointerdown → 팬 영역이면 계란 생성(`MAX_EGGS` 상한) → `update()`에서 `min(dt, MAX_DT)` 클램프 후 모델 tick → 전이를 bus로 발행 → 뷰 갱신 |
 
 ## 6. 익힘 FSM 상태 전이표
@@ -168,21 +168,19 @@ GDD §13 M0 인수 조건 대응 절차 (구현 완료 후 수행 — 명령은 
 - [ ] 디버그 HUD: 계란별 상태/doneness/타이머 + fps 표시, `?debug=1` 토글
 - [ ] 커밋 12개 각각에서 빌드·테스트 그린 유지 확인
 
-## 10. 미결 [DECISION] — 승인 필요 (M0-1~5)
+## 10. [DECISION] 확정 결과 (M0-1~5 — 2026-07-07 일괄 확정)
 
-구현 착수 전 확정이 필요한 5건이다. 기본안·트레이드오프의 상세는 **[../DECISIONS.md](../DECISIONS.md) 표 2**가 단일 로그다(여기에 중복 기재하지 않는다).
+디렉터가 M0 스펙 승인과 함께 기본안을 일괄 채택했다. 단일 로그는 **[../DECISIONS.md](../DECISIONS.md) 표 2**.
 
-- **M0-1 논리 해상도** — 추천: 720×1280 (대안: 540×960)
-- **M0-2 SMOKE→스프링클러 3초의 시계 기준** — 추천: 실시간(dt 누적) (대안: 열원 연동)
-- **M0-3 백그라운드(탭 이탈) 복귀 처리** — 추천: dt 클램프 0.1초 → 사실상 익힘 정지
-- **M0-4 노이즈 구현** — 추천: 자체 1D 밸류 노이즈 (GDD 표기 "Perlin"의 대체)
-- **M0-5 "balance.ts 한 파일" 해석** — 추천: 튜닝 수치만 balance.ts, 색은 palette.ts·좌표는 layout.ts
+- **M0-1 논리 해상도** — 720×1280 ([ADR-0004](../adr/0004-logical-resolution-720x1280.md))
+- **M0-2 SMOKE→스프링클러 3초의 시계 기준** — 실시간(dt 누적) ([ADR-0005](../adr/0005-smoke-timer-realtime.md))
+- **M0-3 백그라운드(탭 이탈) 복귀 처리** — dt 클램프 0.1초 ([ADR-0006](../adr/0006-dt-clamp-background.md))
+- **M0-4 노이즈 구현** — 자체 1D 밸류 노이즈 ([ADR-0007](../adr/0007-value-noise-over-perlin.md))
+- **M0-5 "balance.ts 한 파일" 해석** — 튜닝 수치만 balance.ts, 색은 palette.ts·좌표는 layout.ts ([ADR-0008](../adr/0008-balance-file-scope.md))
 
 ## 11. 승인 후 절차
 
-디렉터가 M0-1~5를 확정([../DECISIONS.md](../DECISIONS.md) 갱신 + [ADR](../adr/README.md) 승격)하고 이 스펙을 승인하면:
-
-1. **이 문서의 상태를 Approved로 변경한 후 구현에 착수한다.**
+1. ~~이 문서의 상태를 Approved로 변경한 후 구현에 착수한다.~~ ✅ 2026-07-07 완료.
 2. 브랜치 `feat/m0-skeleton`을 생성하고 §7의 커밋 순서대로 진행한다.
 3. 완료 시 §9 인수 절차 수행 → `Implemented` → `Verified` → as-built 갱신 → **정지·리뷰 대기** ([SDD 루프](README.md)).
 

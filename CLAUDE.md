@@ -22,7 +22,7 @@
 2. **임의 결정 금지.** GDD와 충돌하거나 문서에 없는 판단이 필요하면
    [docs/DECISIONS.md](docs/DECISIONS.md)에 [DECISION] 항목을 추가한 뒤 디렉터에게 질문한다.
 3. **밸런스 수치(시간·계수·판정 윈도우·감점량)는 전부 `src/data/balance.ts` 한 파일에 상수로.**
-   매직넘버 인라인 금지. (색·좌표 분리 여부는 미결 M0-5 — 확정 전 단정 금지)
+   매직넘버 인라인 금지. (색은 palette.ts·좌표는 layout.ts 분리 — [ADR-0008](docs/adr/0008-balance-file-scope.md))
 4. **유닛테스트는 순수 로직에만**(채점, 익힘 모델, 뒤집기 판정, 이벤트 스케줄러). 렌더링 테스트 금지.
 5. **성능 예산 준수.** update 루프 내 per-frame 객체 할당 금지, 적/파티클/말풍선은 오브젝트 풀링,
    입력은 `pointerdown` 기준(click 지연 금지), 미드레인지 안드로이드 크롬 60fps, 초기 번들 < 3MB.
@@ -52,8 +52,8 @@ happyeggs/
 │  ├─ 01-overview.md ~ 05-conventions.md   # 개요 · 아키텍처 · 게임 시스템 · 테스트 · 규약
 │  ├─ DECISIONS.md      # 미결 [DECISION] 로그 (확정 시 adr/로 승격)
 │  ├─ adr/              # 확정 결정 기록 (ADR)
-│  └─ specs/            # 마일스톤 스펙 (SDD) — M0-skeleton.md (상태: Proposed)
-└─ src/                 # (예정 — M0 스펙 승인 후 생성. 코드는 아직 0줄)
+│  └─ specs/            # 마일스톤 스펙 (SDD) — M0-skeleton.md (상태: Approved)
+└─ src/                 # M0 구현 — feat/m0-skeleton 브랜치에서 작성
    ├─ scenes/           # Boot / Preload / Game / Result
    ├─ systems/          # 순수 TS 모델 — Phaser import 금지, Vitest 대상
    ├─ data/             # balance.ts(★ 밸런스 수치 전부) · assets · palette · layout
@@ -74,8 +74,8 @@ happyeggs/
 
 ## 실행 커맨드 (전부 예정 — M0 구현 후 활성화)
 
-현재는 **코드 0줄, 문서 단계**다. 아래 커맨드는 M0 스펙([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md),
-상태: Proposed)이 승인되고 스캐폴딩이 커밋된 뒤에야 동작한다.
+아래 커맨드는 M0 스캐폴드 커밋(`feat/m0-skeleton` 브랜치) 이후 동작한다. M0 스펙은
+[docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) (상태: Approved).
 
 | 커맨드 | 용도 | 상태 |
 |---|---|---|
@@ -89,7 +89,7 @@ happyeggs/
 - [GDD.md](GDD.md) — SSOT. 게임 규칙·수치·마일스톤의 근거는 전부 여기
 - [WORKPLAN.md](WORKPLAN.md) — M0~M7 체크리스트와 DoD
 - [docs/README.md](docs/README.md) — 문서 인덱스
-- [docs/DECISIONS.md](docs/DECISIONS.md) — 미결 [DECISION] 12건 (DECISION-01~07 + M0-1~5)
+- [docs/DECISIONS.md](docs/DECISIONS.md) — [DECISION] 로그: DECISION-01~07 미결 · M0-1~5 확정(ADR-0004~0008)
 
 ---
 

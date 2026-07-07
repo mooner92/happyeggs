@@ -33,9 +33,14 @@ ADR의 핵심 원칙:
 | 0001 | 기술 스택: Phaser 3 + TypeScript(strict) + Vite | 채택 | [0001-tech-stack-phaser-vite-ts.md](0001-tech-stack-phaser-vite-ts.md) |
 | 0002 | 자체 경량 EventBus — 외부 상태관리 라이브러리 금지 | 채택 | [0002-custom-eventbus-no-state-lib.md](0002-custom-eventbus-no-state-lib.md) |
 | 0003 | SDD 문서 체계 채택 (KEIAdminSuperv 구조 준용) | 채택 | [0003-sdd-document-structure.md](0003-sdd-document-structure.md) |
+| 0004 | 논리 해상도 720×1280 | 채택 | [0004-logical-resolution-720x1280.md](0004-logical-resolution-720x1280.md) |
+| 0005 | SMOKE→스프링클러 유예는 실시간 기준 | 채택 | [0005-smoke-timer-realtime.md](0005-smoke-timer-realtime.md) |
+| 0006 | dt 클램프 0.1초 (백그라운드 = 익힘 정지) | 채택 | [0006-dt-clamp-background.md](0006-dt-clamp-background.md) |
+| 0007 | 블롭 노이즈는 자체 1D 밸류 노이즈 | 채택 | [0007-value-noise-over-perlin.md](0007-value-noise-over-perlin.md) |
+| 0008 | balance.ts 범위: 게임플레이 튜닝 수치만 | 채택 | [0008-balance-file-scope.md](0008-balance-file-scope.md) |
 
 > [!NOTE]
-> 세 ADR 모두 **이미 확정되어 있던 사항의 기록**이다 — 0001·0002는 [GDD](../../GDD.md) §3(고정, 변경 제안 금지)이, 0003은 2026-07-07 디렉터 지시가 결정 주체이며, [../DECISIONS.md](../DECISIONS.md)의 미결 항목이 승격된 것이 아니다. 미결 항목(DECISION-01~07, M0-1~5)의 승격분은 0004부터 시작한다.
+> 세 ADR 모두 **이미 확정되어 있던 사항의 기록**이다 — 0001·0002는 [GDD](../../GDD.md) §3(고정, 변경 제안 금지)이, 0003은 2026-07-07 디렉터 지시가 결정 주체이며, [../DECISIONS.md](../DECISIONS.md)의 미결 항목이 승격된 것이 아니다. 미결 항목의 승격분은 0004부터다 — **0004~0008이 M0-1~5의 승격분**(2026-07-07, M0 스펙 승인 시 기본안 일괄 채택)이며, DECISION-01~07은 아직 미결이다.
 
 각 결정이 영향을 주는 영역을 한눈에 보면 다음과 같다.
 
@@ -56,9 +61,9 @@ flowchart TB
 
 ## 새 ADR을 추가하려면
 
-1. 다음 번호(`0004-…`)로 파일을 만들고 위 6절 형식을 따른다.
+1. 다음 번호(`0009-…`)로 파일을 만들고 위 6절 형식을 따른다.
 2. 위 **ADR 목록** 표에 한 줄 추가한다.
-3. 기존 결정을 대체하는 경우, 대체되는 ADR의 상태를 `폐기됨(Superseded by 0004)`으로 바꾸고 본문 상단에서 새 ADR로 링크한다(본문 내용 자체는 보존).
+3. 기존 결정을 대체하는 경우, 대체되는 ADR의 상태를 `폐기됨(Superseded by nnnn)`으로 바꾸고 본문 상단에서 새 ADR로 링크한다(본문 내용 자체는 보존).
 4. 작은 단위로 커밋한다(conventional commits, `docs:` 접두).
 
 ## docs/DECISIONS.md(미결)와의 관계

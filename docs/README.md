@@ -13,7 +13,7 @@
 - GDD에 없는 판단이 필요하면 임의로 정하지 않고 [DECISIONS.md](DECISIONS.md)에 [DECISION] 항목으로 올려 디렉터 확인을 받습니다. 확정된 결정은 [adr/](adr/README.md)로 승격합니다.
 
 > [!NOTE]
-> 현재 상태(2026-07-07): **코드 0줄, 문서 단계.** M0 스펙([specs/M0-skeleton.md](specs/M0-skeleton.md))은 작성 완료·**디렉터 승인 대기(Proposed)**. 본문에 나오는 실행 명령(`npm run dev` 등)은 전부 "예정"입니다.
+> 현재 상태(2026-07-07): **코드 0줄, 문서 단계.** M0 스펙([specs/M0-skeleton.md](specs/M0-skeleton.md))은 **Approved**(2026-07-07, M0-1~5 기본안 채택) — `feat/m0-skeleton`에서 구현이 진행됩니다. 실행 명령(`npm run dev` 등)은 M0 스캐폴드 커밋 이후 동작합니다.
 
 ---
 
@@ -27,9 +27,9 @@
 | 04 | 테스트 (Testing) | Vitest 전략 — 순수 로직만, 렌더링 테스트 금지 | [04-testing.md](04-testing.md) |
 | 05 | 규약 (Conventions) | 개발 규약·브랜치·conventional commits·기여 가이드 | [05-conventions.md](05-conventions.md) |
 | — | 결정 로그 (Decisions) | 미결 [DECISION] 목록 — GDD §16 + M0-1~5 | [DECISIONS.md](DECISIONS.md) |
-| — | ADR 인덱스 | 확정된 아키텍처 결정 기록 (0001~0003) | [adr/README.md](adr/README.md) |
+| — | ADR 인덱스 | 확정된 아키텍처 결정 기록 (0001~0008) | [adr/README.md](adr/README.md) |
 | — | 스펙 인덱스 (Specs) | SDD 프로세스·스펙 템플릿·마일스톤별 스펙 | [specs/README.md](specs/README.md) |
-| — | M0 스펙 | M0(뼈대) 파일 단위 구현 스펙 — 상태: **Proposed** | [specs/M0-skeleton.md](specs/M0-skeleton.md) |
+| — | M0 스펙 | M0(뼈대) 파일 단위 구현 스펙 — 상태: **Approved** | [specs/M0-skeleton.md](specs/M0-skeleton.md) |
 
 ---
 
@@ -41,10 +41,10 @@
 
 1. [01-overview.md](01-overview.md) — 컨셉·성능 예산·코어 루프
 2. [03-game-systems.md](03-game-systems.md) — 게임 시스템의 엔지니어링 해석
-3. [specs/README.md](specs/README.md) → [specs/M0-skeleton.md](specs/M0-skeleton.md) — 승인 대기(Proposed) 스펙
+3. [specs/README.md](specs/README.md) → [specs/M0-skeleton.md](specs/M0-skeleton.md) — 승인된(Approved) M0 스펙
 
 > [!TIP]
-> 디렉터가 지금 해야 할 일은 [DECISIONS.md](DECISIONS.md)의 미결 항목(DECISION-01~07, M0-1~5) 확정과 M0 스펙 승인입니다.
+> M0 스펙과 M0-1~5는 2026-07-07 승인·확정되었습니다. 디렉터에게 남은 미결은 [DECISIONS.md](DECISIONS.md)의 **DECISION-01~07**(주로 M1·M4에서 필요)입니다.
 
 ### 👩‍💻 개발자 (구현·테스트를 한다)
 
@@ -108,7 +108,7 @@
 
 ## ⛔ 문서가 지키는 규칙
 
-1. **미결 [DECISION]을 확정처럼 쓰지 않는다.** GDD §16의 DECISION-01~07과 M0 스펙의 M0-1~5는 전부 미결이며 기본안만 있다. 본문에서 언급할 때는 반드시 `[DECISION-XX]` / `[M0-X]` 태그와 "기본안"임을 밝힌다.
+1. **미결 [DECISION]을 확정처럼 쓰지 않는다.** 미결/확정 현황의 단일 출처는 [DECISIONS.md](DECISIONS.md)다. 미결 항목을 본문에서 언급할 때는 반드시 `[DECISION-XX]` / `[M0-X]` 태그와 "기본안"임을 밝힌다.
 2. **GDD 수치를 왜곡하지 않는다.** 밸런스·판정·감점 수치는 GDD와 승인된 스펙에 있는 값만 인용한다. 모르면 `[!IMPORTANT]`(확인 필요) 콜아웃을 둔다.
 3. **스펙 상태를 명시한다.** 모든 스펙 문서는 머리말에 Proposed / Approved / Implemented / Verified 중 하나를 표기하고, 상태 전이는 SDD 루프([specs/README.md](specs/README.md))를 따른다.
 4. **코드가 없는 동안 실행 명령을 현재형으로 쓰지 않는다.** `npm run dev/build/test/lint`는 M0 구현 전까지 "예정"으로 표기한다.

@@ -6,7 +6,7 @@
 
 | 항목 | 상태 |
 | --- | --- |
-| 상태 | 📋 **스펙 단계 — 코드 0줄.** M0 스펙 작성 완료 · **디렉터 승인 대기(Proposed)** |
+| 상태 | 🛠 **M0 구현 단계** — M0 스펙 **Approved**(2026-07-07, M0-1~5 기본안 채택) · 구현 브랜치 `feat/m0-skeleton` |
 | 플랫폼 | 1차: **모바일 웹(세로 9:16)** + 데스크톱 웹 · 2차: Capacitor(iOS/Android) / Electron + steamworks.js(Steam) |
 | 스택 | Phaser 3 + TypeScript(strict) + Vite · Vitest · 자체 EventBus(외부 상태관리 라이브러리 금지) |
 | 레포 | github.com/mooner92/happyeggs · 문서 브랜치 `main` · 구현 브랜치 `feat/m{n}-*` · 문서화 시작 2026-07-07 |
@@ -27,7 +27,7 @@ flowchart LR
 ```
 
 - **마일스톤 게이트:** M0(뼈대)~M7 순서대로만 진행하며, 스펙이 **Approved**가 되기 전에는 구현하지 않는다. 마일스톤 건너뛰기·병합 금지(GDD §13).
-- **스펙 상태:** Proposed → Approved → Implemented → Verified. 현재 [M0 스펙](docs/specs/M0-skeleton.md)이 Proposed다.
+- **스펙 상태:** Proposed → Approved → Implemented → Verified. 현재 [M0 스펙](docs/specs/M0-skeleton.md)은 **Approved**(2026-07-07)다.
 - **임의 결정 금지:** GDD와 충돌하거나 GDD에 없는 판단은 [docs/DECISIONS.md](docs/DECISIONS.md)에 [DECISION]으로 기록하고 디렉터에게 묻는다. 확정된 결정은 [docs/adr/](docs/adr/README.md)로 승격한다.
 
 ---
@@ -105,14 +105,14 @@ happyeggs/
 │   ├── README.md        #   문서 인덱스 + 표기 규약
 │   ├── 01-overview.md ~ 05-conventions.md
 │   ├── DECISIONS.md     #   미결 [DECISION] 로그
-│   ├── adr/             #   확정 결정 기록 (ADR 0001~0003)
-│   └── specs/           #   마일스톤 스펙 (M0-skeleton.md — Proposed)
-└── src/                 # ⏳ 예정 — M0 스펙 기본안 기준, 승인 전 (코드 0줄)
+│   ├── adr/             #   확정 결정 기록 (ADR 0001~0008)
+│   └── specs/           #   마일스톤 스펙 (M0-skeleton.md — Approved)
+└── src/                 # 🛠 M0 구현 — feat/m0-skeleton 브랜치에서 작성
     ├── main.ts          #   (예정) Phaser.Game 부트스트랩
     ├── scenes/          #   (예정) Boot / Preload / Game / Result
     ├── systems/         #   (예정) 순수 TS — Phaser import 금지 (Vitest 대상)
     ├── ui/              #   (예정) 뷰·디버그 HUD
-    └── data/            #   (예정) balance.ts(밸런스 수치 단일화) 등 — 분리안은 M0-5 미결
+    └── data/            #   balance(튜닝 수치) / palette / layout / assets — 분리 구조는 [ADR-0008](docs/adr/0008-balance-file-scope.md)
 ```
 
 ---
@@ -135,7 +135,7 @@ happyeggs/
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 미결 [DECISION] 로그 (현재 12건 전부 미결) |
 | [docs/adr/README.md](docs/adr/README.md) | ADR 인덱스 — 스택·EventBus·SDD 문서 구조 |
 | [docs/specs/README.md](docs/specs/README.md) | SDD 프로세스·스펙 템플릿 |
-| [docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) | M0 스펙 (상태: **Proposed**) |
+| [docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) | M0 스펙 (상태: **Approved**) |
 
 > [!TIP]
 > **독자별 추천 경로**
@@ -146,15 +146,15 @@ happyeggs/
 
 ## 상태 & 로드맵
 
-**문서화 시작** 2026-07-07 · **현재 단계** 📋 스펙 단계 — M0 스펙 Proposed(디렉터 승인 대기), 코드 0줄.
+**문서화 시작** 2026-07-07 · **현재 단계** 🛠 M0 구현 — M0 스펙 Approved(2026-07-07), `feat/m0-skeleton`에서 구현 진행.
 
-미결 결정은 **12건 전부 미결**(GDD §16 DECISION-01~07 + M0 스펙 M0-1~5)이며 기본안만 있다 — [docs/DECISIONS.md](docs/DECISIONS.md).
+미결 결정: GDD §16 **DECISION-01~07(7건)은 미결**(기본안만 있음), M0-1~5는 확정(ADR-0004~0008) — [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ### 마일스톤 현황 (GDD §13)
 
 | # | 이름 | 한 줄 요약 | 상태 |
 | --- | --- | --- | :---: |
-| M0 | 뼈대 | Vite+Phaser+TS 셋업, 4씬 구조, 세로 레이아웃, 탭으로 계란 깨기→블롭, 익힘 FSM, 디버그 HUD | 📋 승인 대기 |
+| M0 | 뼈대 | Vite+Phaser+TS 셋업, 4씬 구조, 세로 레이아웃, 탭으로 계란 깨기→블롭, 익힘 FSM, 디버그 HUD | 🛠 구현 중 |
 | M1 | 코어 루프 | 왕복 파워 게이지+뒤집기 판정 전부, 원형도 채점+테스트, 서빙, 손님 큐, 하드코딩 스테이지 1개 클리어 | ⏳ 대기 |
 | M2 | 이벤트 프레임워크 | 스케줄러, telegraph→window→resolve 파이프라인, 거미+강도 2종 완전 구현 | ⏳ 대기 |
 | M3 | 스테이지 시스템 | JSON 스테이지 로더, 실패 조건 3종, 결과 화면, PNG 합성/Web Share | ⏳ 대기 |
@@ -226,4 +226,4 @@ gantt
 
 ---
 
-최종 수정: 2026-07-07 (SDD 문서 초기 작성 — 스펙 단계, M0 승인 대기)
+최종 수정: 2026-07-07 (M0 스펙 승인 — M0-1~5 확정(ADR-0004~0008), 구현 착수)

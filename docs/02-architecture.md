@@ -1,7 +1,7 @@
 # 02 · 기술 아키텍처
 
 > EGG FLIP (가제)의 기술 구조 — 스택, 씬 흐름, **순수 모델/뷰 분리**, EventBus, 데이터 주도 설계, 성능 전략.
-> 원본 근거는 [../GDD.md](../GDD.md) §2·§3·§8·§10·§12와 [specs/M0-skeleton.md](specs/M0-skeleton.md)(상태: Proposed)다. 코드는 아직 0줄이며, 아래 구조는 전부 **M0 스펙 승인 후 구현 예정**이다.
+> 원본 근거는 [../GDD.md](../GDD.md) §2·§3·§8·§10·§12와 [specs/M0-skeleton.md](specs/M0-skeleton.md)(상태: Approved)다. 구현은 `feat/m0-skeleton` 브랜치에서 진행된다.
 
 ---
 
@@ -133,7 +133,7 @@ happyeggs/
 ├─ index.html            # 세로 뷰포트 메타, touch-action:none, 100dvh
 ├─ vite/vitest/eslint 설정  # base './' · node 테스트 환경 · 모델/뷰 경계 강제 (§3)
 └─ src/
-   ├─ main.ts            # Phaser.Game 부트스트랩 (FIT + autoCenter, 논리 해상도 [M0-1 미결])
+   ├─ main.ts            # Phaser.Game 부트스트랩 (FIT + autoCenter, 논리 해상도 720×1280 — ADR-0004)
    ├─ scenes/            # Boot / Preload / Game / Result
    ├─ systems/           # ★ 순수 TS — EventBus, events, noise, CookingModel, EggBlobModel
    ├─ ui/                # views/(PanView, HandsView, EggView) + DebugHud
@@ -149,8 +149,8 @@ happyeggs/
 | `data/palette.ts` | placeholder 5색 + 익힘 상태별 색 |
 | `data/layout.ts` | 논리 해상도 + 중앙 액션 칼럼 기준 배치 비율 ([DECISION-05] 대비) |
 
-> [!IMPORTANT]
-> 확인 필요: "밸런스는 balance.ts 한 파일" 규약의 해석 — 튜닝 수치만 balance.ts에 두고 색은 palette.ts·좌표는 layout.ts로 분리하는 안이 **[M0-5] 기본안(추천)이며 미결**이다. 디렉터 확정 전까지 위 4분할은 잠정 구조다. [DECISIONS.md](DECISIONS.md) 참조.
+> [!NOTE]
+> "밸런스는 balance.ts 한 파일" 규약의 해석 — **튜닝 수치만 balance.ts, 색은 palette.ts·좌표는 layout.ts 분리**로 확정되었다 ([adr/0008](adr/0008-balance-file-scope.md), 원 항목 M0-5).
 
 ---
 
@@ -161,7 +161,7 @@ happyeggs/
 | per-frame 객체 할당 금지 → 60fps | 모델은 정점 배열 **in-place 갱신**, 뷰는 `Point[]` **사전 할당** 후 x/y만 mutate. 폰 실측 60fps 확인은 M6 성능 패스 | M0부터 |
 | 오브젝트 풀링 | 적/파티클/말풍선 — 등장하는 M2부터 도입(M0 선작성 금지) | M2+ |
 | 텍스처 아틀라스 | 최종 아트 전환 시 | M6 |
-| dt 클램프 | 탭 이탈 복귀 시 거대 dt로 계란 즉사(전소) 방지 — **[M0-3] 기본안 0.1초, 미결** | M0 |
+| dt 클램프 | 탭 이탈 복귀 시 거대 dt로 계란 즉사(전소) 방지 — **0.1초 ([adr/0006](adr/0006-dt-clamp-background.md))** | M0 |
 | HUD 스로틀 | 디버그 HUD 텍스트 갱신 250ms 간격 — 매 프레임 텍스트 재조립 방지 | M0 |
 | 초기 번들 < 3MB | 에셋 lazy load, 정적 빌드 | 상시 |
 | 입력 지연 | `pointerdown` 기준(click 금지), 마우스=터치 동일 매핑 | M0부터 |
