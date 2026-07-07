@@ -7,8 +7,8 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | **Approved** (2026-07-07 승인 — M0-1~5 기본안 일괄 채택) |
-| 작성일 | 2026-07-07 |
+| 상태 | **Implemented** (2026-07-08 구현·자동검증 완료 — 폰 육안 확인 후 Verified) |
+| 작성일 | 2026-07-07 (구현 2026-07-08) |
 | 근거 GDD 절 | [GDD](../../GDD.md) §13 M0 (보조: §2 성능 예산 · §3 스택 · §5 템포 · §6 계란 시스템 · §14 아트 규약) |
 | 구현 브랜치 | `feat/m0-skeleton` |
 | [DECISION] | M0-1 ~ M0-5 **전부 확정**(ADR-0004~0008) — [../DECISIONS.md](../DECISIONS.md) 표 2 (§10 참조) |
@@ -151,22 +151,27 @@ happyeggs/
 
 ## 9. 인수 조건
 
-GDD §13 M0 인수 조건 대응 절차 (구현 완료 후 수행 — 명령은 현재 전부 예정):
+GDD §13 M0 인수 조건 대응 절차:
 
-1. `npx vitest run` 전체 통과 (익힘 모델 포함)
-2. `npm run dev -- --host` → 동일 네트워크 폰 브라우저 접속
+1. `npm run test` (= `vitest run`) 전체 통과 (익힘 모델 포함)
+2. `npm run dev` → 터미널의 Network URL로 동일 네트워크 폰 브라우저 접속
 3. 육안 체크: 세로 9:16 → 팬 탭으로 계란 깨기(최대 3개) → 블롭 퍼짐 → RAW→…→SMOKE 색 변화 → HUD 상태/fps
 4. 보고 후 **정지, 리뷰 대기**
 
-체크리스트:
+체크리스트 (✅ = 자동/코드 검증 완료 · ☐ = 디렉터 폰 육안 확인 대기):
 
-- [ ] Vitest 전체 그린 (CookingModel / EggBlobModel / noise / EventBus)
-- [ ] 폰 브라우저에서 세로 9:16 표시 (FIT + autoCenter)
+- [x] Vitest 전체 그린 — **43 테스트 통과** (CookingModel / EggBlobModel / noise / EventBus)
+- [x] `tsc --noEmit` 타입 그린 + `eslint .` 클린 + `vite build` 성공
+- [x] `npm run dev` 서버가 `index.html`·`src/main.ts` 정상 서빙 (200) — 헤드리스 스모크
+- [ ] 폰 브라우저에서 세로 9:16 표시 (FIT + autoCenter) — 육안
 - [ ] 팬 탭 → 계란 최대 3개 생성, 블롭 퍼짐 육안 확인
 - [ ] RAW → SET → PERFECT_WINDOW → OVERDONE → BURNT → SMOKE 색 변화 육안 확인
-- [ ] SMOKE 3초 후 `cook:smokeCritical` 발행 + HUD 점멸 (스테이지 종료 없음 — M3 소관)
-- [ ] 디버그 HUD: 계란별 상태/doneness/타이머 + fps 표시, `?debug=1` 토글
-- [ ] 커밋 12개 각각에서 빌드·테스트 그린 유지 확인
+- [x] SMOKE 유예 경과 후 `cook:smokeCritical` 발행 (모델 테스트로 고정, 스테이지 종료 없음 — M3 소관)
+- [x] 디버그 HUD: 계란별 상태/doneness/타이머 + fps 표시 (as-built: `?debug=0`으로 끔 — §12)
+- [x] 커밋 12개 각각에서 빌드·테스트 그린 유지 확인
+
+> [!NOTE]
+> 이 환경에는 헤드리스 브라우저가 없어 폰 육안 항목(9:16 표시·탭 상호작용·색 변화)은 디렉터가 `npm run dev`로 확인한다. 자동 검증(테스트·빌드·서빙)과 순수 로직·이벤트 계약은 전부 그린이다.
 
 ## 10. [DECISION] 확정 결과 (M0-1~5 — 2026-07-07 일괄 확정)
 
@@ -181,8 +186,19 @@ GDD §13 M0 인수 조건 대응 절차 (구현 완료 후 수행 — 명령은 
 ## 11. 승인 후 절차
 
 1. ~~이 문서의 상태를 Approved로 변경한 후 구현에 착수한다.~~ ✅ 2026-07-07 완료.
-2. 브랜치 `feat/m0-skeleton`을 생성하고 §7의 커밋 순서대로 진행한다.
-3. 완료 시 §9 인수 절차 수행 → `Implemented` → `Verified` → as-built 갱신 → **정지·리뷰 대기** ([SDD 루프](README.md)).
+2. ~~브랜치 `feat/m0-skeleton`을 생성하고 §7의 커밋 순서대로 진행한다.~~ ✅ 2026-07-08 완료 (커밋 12개 + 리뷰 수정 1커밋).
+3. §9 자동 인수 그린 → `Implemented`. **폰 육안 확인 후 `Verified`로 전진** → **정지·리뷰 대기** ([SDD 루프](README.md)).
+
+## 12. as-built — 계획과 달라진 점
+
+구현이 §4~§8 계획과 다르거나 이후 마일스톤이 알아야 할 실물 차이:
+
+- **디버그 HUD 토글 극성**: 계획의 `?debug=1`(opt-in) → 실물 **`?debug=0`으로 끔**(M0 기본 ON). M0 인수가 HUD 상시 관찰을 전제하므로 기본 ON이 자연스럽다.
+- **SMOKE 경고 표현**: 계획 문구 "HUD 점멸" → 실물은 **HUD 경고색 전환 + `!! SPRINKLER (M3)` 텍스트**(정적). 점멸 애니메이션은 연출이라 폴리시(M6)로 미룸.
+- **추가 balance/layout 상수**: 도형 표현 비율(`PAN_SHAPE`·`HAND_SHAPE`·`TEXT`)을 layout.ts에, 상태별 색을 palette.ts에 상수화(ADR-0008 준수). 계획에 없던 additive 항목이며 매직넘버 인라인은 없다.
+- **이벤트 3종 확정**: `egg:cracked` / `cook:stateChanged`(전이 목록만큼 발행) / `cook:smokeCritical`(계란당 1회). 향후 도메인은 events.ts 주석 예약만.
+- **코드리뷰 반영(커밋 `fix:`)**: 블롭 노이즈 링 주기화(각도 0 이음매 제거), `heatCoeff` 비유한값 가드, 노른자 유클리드 오프셋 상한, SMOKE 진입 틱 `/coeff` 환산 회귀 테스트 — 다중 관점 리뷰 + 반박 검증에서 확정된 4건.
+- **M1 인계**: `EggBlobModel.getPolygon()`(각도 순서 보존)이 M1 원형도 채점 Q=4πA/P²의 무수정 입력이다. `CookingModel`은 면(面)별 doneness 배열로 확장 시 파생 함수 재사용(FSM 무수정).
 
 ---
 

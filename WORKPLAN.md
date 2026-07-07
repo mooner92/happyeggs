@@ -67,18 +67,19 @@ flowchart TD
 > **확인 필요: GDD §16의 DECISION-01~07은 여전히 미결**이다(주로 M1·M4에서 필요). 확정 전에 확정된 것처럼 구현하지 않는다 — [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ### 작업 체크리스트 (커밋 단위 — M0 스펙 §7, 각각 빌드·테스트 그린 유지)
-- [ ] 1. `chore: scaffold vite + phaser3 + ts(strict) + vitest + eslint/prettier` — 모바일 메타(touch-action 등)·vite base 포함
-- [ ] 2. `docs: sync architecture and decision log with m0 scaffold` — 기작성 문서(docs/02-architecture·DECISIONS)에 구현 확정 사항 반영
-- [ ] 3. `feat: add data modules (balance/assets/palette/layout)` — 상수 홈 먼저, 매직넘버 원천 차단
-- [ ] 4. `feat: add scene skeleton with 9:16 FIT scaling` — 4씬 배선, 폰 세로 확인
-- [ ] 5. `feat: add typed event bus and m0 event definitions` (+test)
-- [ ] 6. `feat: add seeded 1d value noise` (+test)
-- [ ] 7. `feat: add egg blob model (radial vertices, spread, smoothing)` (+test)
-- [ ] 8. `feat: add cooking fsm model` (+test) — 여기까지가 인수조건 Vitest 분
-- [ ] 9. `feat: render pan and hands placeholders`
-- [ ] 10. `feat: crack eggs on pointerdown and render spreading blobs`
-- [ ] 11. `feat: drive cooking states with color changes and smoke warning`
-- [ ] 12. `feat: add debug hud (state/doneness/timer/fps)` — Result 디버그 진입 버튼 포함 → **정지, 리뷰 대기**
+- [x] 1. `chore: scaffold vite + phaser3 + ts(strict) + vitest + eslint/prettier` — 모바일 메타(touch-action 등)·vite base 포함
+- [x] 2. `docs: sync architecture and decision log with m0 scaffold` — 기작성 문서(docs/02-architecture·DECISIONS)에 구현 확정 사항 반영
+- [x] 3. `feat: add data modules (balance/assets/palette/layout)` — 상수 홈 먼저, 매직넘버 원천 차단
+- [x] 4. `feat: add scene skeleton with 9:16 FIT scaling` — 4씬 배선
+- [x] 5. `feat: add typed event bus and m0 event definitions` (+test)
+- [x] 6. `feat: add seeded 1d value noise` (+test)
+- [x] 7. `feat: add egg blob model (radial vertices, spread, smoothing)` (+test)
+- [x] 8. `feat: add cooking fsm model` (+test) — 여기까지가 인수조건 Vitest 분
+- [x] 9. `feat: render pan and hands placeholders`
+- [x] 10. `feat: crack eggs on pointerdown and render spreading blobs`
+- [x] 11. `feat: drive cooking states with color changes and smoke warning`
+- [x] 12. `feat: add debug hud (state/doneness/timer/fps)` — Result 디버그 진입 버튼 포함
+- [x] +`fix:` 코드리뷰 확정 4건 반영 (블롭 seam·heatCoeff 가드·노른자 상한·smoke 환산 테스트)
 
 ### 산출물
 - 4씬(Boot/Preload/Game/Result) + 세로 9:16 FIT 스케일링 + 모바일 뷰포트 메타 + 디버그 HUD(상태/doneness/타이머/fps)
@@ -86,9 +87,12 @@ flowchart TD
 - data 모듈: `balance.ts`(★ 튜닝 수치) · `assets.ts`(빈 매니페스트) · `palette.ts` · `layout.ts`
 
 ### 완료의 정의 (DoD — GDD §13 M0 인수 조건)
-- [ ] `npx vitest run` 전체 통과 (익힘 모델 포함)
-- [ ] `npm run dev -- --host` → 폰 브라우저에서 팬 탭으로 계란을 깨고, 블롭이 퍼지고, RAW→…→SMOKE 색 변화(타는 것)까지 **육안 확인**
-- [ ] 스펙 as-built 갱신 + 이 문서 체크 + README 상태 갱신 후 정지·리뷰 대기
+- [x] `npm run test` 전체 통과 — **43 테스트**(익힘 모델 포함) + `tsc`·`eslint`·`build` 그린
+- [ ] `npm run dev` → 폰 브라우저에서 팬 탭으로 계란을 깨고, 블롭이 퍼지고, RAW→…→SMOKE 색 변화(타는 것)까지 **육안 확인** (디렉터 — 헤드리스 환경이라 자동화 불가)
+- [x] 스펙 as-built 갱신([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) §12) + 이 문서 체크 + README 상태 갱신
+
+> [!NOTE]
+> 스펙 상태는 **Implemented**(자동 검증 완료). 폰 육안 확인이 끝나면 **Verified**로 전진한다. M1 착수는 그 확인 후.
 
 ### 리스크
 - **dt 스파이크**: 탭 이탈 후 복귀 시 큰 dt 1회로 계란이 즉시 전소 → dt 클램프(0.1s — [ADR-0006](docs/adr/0006-dt-clamp-background.md))로 방어.
