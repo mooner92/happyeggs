@@ -17,8 +17,8 @@ export const STAGES: readonly StageDef[] = [
     items: [
       { id: 'lid', pos: 'wall_left' },
       { id: 'torch', pos: 'stove_side' },
-      { id: 'fencing_sword', pos: 'wall_right' },
-      { id: 'shield_decoy', pos: 'shelf' },
+      { id: 'fencing_sword', pos: 'wall_right_a' },
+      { id: 'shield_decoy', pos: 'wall_right_b' },
     ],
   },
   {
@@ -35,8 +35,8 @@ export const STAGES: readonly StageDef[] = [
     items: [
       { id: 'lid', pos: 'wall_left' },
       { id: 'torch', pos: 'stove_side' },
-      { id: 'fencing_sword', pos: 'wall_right' },
-      { id: 'shield_decoy', pos: 'shelf' },
+      { id: 'fencing_sword', pos: 'wall_right_a' },
+      { id: 'shield_decoy', pos: 'wall_right_b' },
     ],
   },
 ];

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
-import { DEPTH, ITEM } from '../../data/layout';
-import { ITEM_STYLE } from '../../data/palette';
+import { DEPTH, ITEM, PLAQUE } from '../../data/layout';
+import { ITEM_STYLE, KITCHEN_STYLE } from '../../data/palette';
 
 /**
  * 주방 아이템 (GDD §9) — 벽/선반에 배치되어 탭으로 대응 입력이 된다.
@@ -86,12 +86,23 @@ export class ItemView {
     g.clear();
     // 트윈 스케일 기준점(피벗)을 좌표로 잡기 위해 원점 이동
     g.setPosition(this.x + dx, this.y);
-    // 벽걸이 판 (은은한 배경 원)
-    g.fillStyle(ITEM_STYLE.plate, 0.28);
-    g.fillCircle(0, 0, r + 8);
+    // 나무 거치판 + 금속 걸이 — 아이템이 "벽에 걸려 있음"을 읽히게 (구체화 패스)
+    const pw = PLAQUE.w;
+    const ph = PLAQUE.h;
+    g.fillStyle(ITEM_STYLE.plate, 0.35); // 판 뒤 그림자
+    g.fillRoundedRect(-pw / 2 + 4, -ph / 2 + 6, pw, ph, PLAQUE.r);
+    g.fillStyle(KITCHEN_STYLE.plaque, 1);
+    g.fillRoundedRect(-pw / 2, -ph / 2, pw, ph, PLAQUE.r);
+    g.lineStyle(3, KITCHEN_STYLE.plaqueEdge, 1);
+    g.strokeRoundedRect(-pw / 2, -ph / 2, pw, ph, PLAQUE.r);
+    // 걸이(금속 못 + 고리)
+    g.fillStyle(KITCHEN_STYLE.hook, 1);
+    g.fillCircle(0, -ph / 2 + 12, 5);
+    g.lineStyle(4, KITCHEN_STYLE.hook, 1);
+    g.lineBetween(0, -ph / 2 + 12, 0, -ph / 2 + 26);
     if (this.hint) {
-      g.lineStyle(3, 0x9be564, 0.9);
-      g.strokeCircle(0, 0, r + 8);
+      g.lineStyle(4, 0x9be564, 0.95);
+      g.strokeRoundedRect(-pw / 2 - 4, -ph / 2 - 4, pw + 8, ph + 8, PLAQUE.r + 4);
     }
     switch (this.id) {
       case 'lid':
@@ -129,14 +140,24 @@ export class ItemView {
   }
 
   private drawTorch(g: Phaser.GameObjects.Graphics, r: number): void {
-    // 손잡이 막대
+    // 화살표로 오독되지 않게: 막대 + 금속 컵 + 둥근 물방울형 불꽃 (서빙 힌트 화살표와 실루엣 분리)
     g.fillStyle(ITEM_STYLE.torchStick, 1);
-    g.fillRect(-r * 0.14, -r * 0.1, r * 0.28, r * 1.1);
-    // 불꽃
+    g.fillRect(-r * 0.14, 0, r * 0.28, r);
+    // 금속 컵 (사다리꼴)
+    g.fillStyle(ITEM_STYLE.lidEdge, 1);
+    g.beginPath();
+    g.moveTo(-r * 0.3, -r * 0.1);
+    g.lineTo(r * 0.3, -r * 0.1);
+    g.lineTo(r * 0.2, r * 0.14);
+    g.lineTo(-r * 0.2, r * 0.14);
+    g.closePath();
+    g.fillPath();
+    // 둥근 불꽃 — 바깥(주황) 타원 + 위로 갈수록 좁아지는 혀 + 노란 심
     g.fillStyle(ITEM_STYLE.torchFlame, 1);
-    g.fillTriangle(-r * 0.5, -r * 0.1, r * 0.5, -r * 0.1, 0, -r * 1.05);
+    g.fillEllipse(0, -r * 0.5, r * 0.62, r * 0.8);
+    g.fillTriangle(-r * 0.2, -r * 0.72, r * 0.2, -r * 0.72, 0, -r * 1.05);
     g.fillStyle(ITEM_STYLE.torchFlameCore, 1);
-    g.fillTriangle(-r * 0.26, -r * 0.15, r * 0.26, -r * 0.15, 0, -r * 0.75);
+    g.fillEllipse(0, -r * 0.42, r * 0.3, r * 0.42);
   }
 
   private drawSword(g: Phaser.GameObjects.Graphics, r: number): void {

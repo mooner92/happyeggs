@@ -51,6 +51,32 @@ export const SPATULA_STYLE = { blade: 0xb9bcc2, bladeEdge: 0x6b6e74, handle: 0x9
 /** 주방 카운터 — 따뜻한 나무 톤 (GDD §4 [주방 카운터]) */
 export const COUNTER_STYLE = { front: 0x3b322a, top: 0x574636, lip: 0x6b573f } as const;
 
+/** 주방 무대 (구체화 패스) — 타일 벽·서빙 바·아이템 거치판 */
+export const KITCHEN_STYLE = {
+  tileLine: 0x14100c, // 벽 타일 줄눈 (알파로 은은하게)
+  ceilingShade: 0x000000,
+  serveBarTop: 0x6b573f,
+  serveBarFront: 0x453626,
+  serveBarLip: 0x86704f,
+  plaque: 0x4a3a28, // 아이템 거치판(나무)
+  plaqueEdge: 0x2b2117,
+  hook: 0x9a9da3, // 금속 걸이
+} as const;
+
+/** 스토브 (열원 시각화, GDD §6.2) — 열계수를 눈에 보이게 */
+export const STOVE_STYLE = {
+  base: 0x17140f,
+  baseEdge: 0x000000,
+  gasFlame: 0x4aa8ff, // 가스 파란 불꽃
+  gasFlameCore: 0xbfe0ff,
+  coal: 0xff7a2a, // 화롯불 숯
+  coalDark: 0x7a3512,
+  emberGlow: 0xff9a4a,
+} as const;
+
+/** 무자막 조작 힌트 픽토그램 */
+export const HINT_STYLE = { icon: 0xf2e9dc, accent: 0x9be564 } as const;
+
 /** 디버그 HUD 텍스트 색 (CSS 색 문자열 — Phaser Text 스타일용) */
 export const HUD_TEXT = { normal: '#9be564', warning: '#ff5544' } as const;
 

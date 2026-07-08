@@ -8,12 +8,12 @@ mkdirSync(OUT, { recursive: true });
 const W = 720,
   H = 1280;
 const PAN = { x: W * 0.5, y: H * 0.58 };
-// 아이템 좌표 (data/items ITEM_POS × DESIGN)
+// 아이템 좌표 (data/items ITEM_POS × DESIGN) — 칼+방패는 우측 벽에 나란히(미스리드)
 const ITEM = {
-  lid: { x: W * 0.09, y: H * 0.33 },
-  torch: { x: W * 0.9, y: H * 0.52 },
-  sword: { x: W * 0.91, y: H * 0.33 },
-  shield: { x: W * 0.1, y: H * 0.52 },
+  lid: { x: W * 0.1, y: H * 0.31 },
+  torch: { x: W * 0.9, y: H * 0.53 },
+  sword: { x: W * 0.8, y: H * 0.31 },
+  shield: { x: W * 0.92, y: H * 0.34 },
 };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

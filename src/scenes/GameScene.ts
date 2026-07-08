@@ -9,6 +9,7 @@ import {
   DOUBLE_TAP_MS,
   DRAG_CUT_PX,
   FLIP_ANIM,
+  HINT,
   SERVE_SWIPE_PX,
   SPIDER,
   TAP_MAX_MS,
@@ -31,15 +32,17 @@ import { findStage, STAGES } from '../data/stages';
 import { starsFor } from '../systems/stars';
 import { recordResult, type KVStorage } from '../systems/save';
 import { DebugHud } from '../ui/DebugHud';
-import { CounterView } from '../ui/views/CounterView';
 import type { EnemyView } from '../ui/views/EnemyView';
 import { CatView, WebTrophyView } from '../ui/views/EventEffects';
 import { EggView } from '../ui/views/EggView';
 import { FlyView } from '../ui/views/FlyView';
 import { HairView } from '../ui/views/HairView';
 import { HandsView } from '../ui/views/HandsView';
+import { HintView } from '../ui/views/HintView';
 import { ItemView } from '../ui/views/ItemView';
+import { KitchenView } from '../ui/views/KitchenView';
 import { PanView } from '../ui/views/PanView';
+import { StoveView } from '../ui/views/StoveView';
 import { PowerGaugeView } from '../ui/views/PowerGaugeView';
 import { QueueView } from '../ui/views/QueueView';
 import { RobberView } from '../ui/views/RobberView';
@@ -108,11 +111,18 @@ function makeLcg(seed: number): RangeRng {
  */
 export class GameScene extends Phaser.Scene {
   private pan!: PanView;
+  private stove!: StoveView;
+  private hands!: HandsView;
+  private hint!: HintView;
   private hud: DebugHud | null = null;
   private gauge!: PowerGaugeView;
   private scorePopup!: ScorePopupView;
   private queueView!: QueueView;
   private stageHud!: StageHudView;
+  /** 동사 힌트 소멸 플래그 — 각 조작을 한 번 성공하면 그 힌트는 끝 */
+  private crackedOnce = false;
+  private flippedOnce = false;
+  private servedOnce = false;
   private readonly powerGauge = new PowerGauge();
   private session!: StageSession;
   private stageDef!: StageDef;
@@ -146,10 +156,17 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(PALETTE.bg);
-    new CounterView(this);
+    // 스테이지 정의 먼저 — 스토브(열원 시각화)가 def를 필요로 한다 (GDD §10)
+    const params = new URLSearchParams(window.location.search);
+    this.stageDef = findStage(params.get('stage') ?? '') ?? STAGES[0]!;
+    const def = this.stageDef;
+
+    new KitchenView(this);
     this.pan = new PanView(this);
-    new HandsView(this);
+    this.stove = new StoveView(this, def.heatSource); // 팬 다음 생성 — 불꽃이 림 위로
+    this.hands = new HandsView(this);
     this.gauge = new PowerGaugeView(this);
+    this.hint = new HintView(this);
     this.scorePopup = new ScorePopupView(this);
     this.queueView = new QueueView(this);
     this.stageHud = new StageHudView(this);
@@ -179,17 +196,17 @@ export class GameScene extends Phaser.Scene {
     this.eggs = [];
     this.nextEggId = 0;
     this.ended = false;
+    this.smokeFailing = false; // 씬 재시작(RETRY) 시 잔존하면 스모크 실패가 무시된다
     this.charging = false;
     this.flipping = false;
+    this.crackedOnce = false;
+    this.flippedOnce = false;
+    this.servedOnce = false;
     this.enemyViews.clear();
     this.items = [];
     this.stolenItems.clear();
     this.webTrophies = [];
 
-    // 스테이지 로드 — ?stage=id 또는 첫 스테이지 (GDD §10)
-    const params = new URLSearchParams(window.location.search);
-    this.stageDef = findStage(params.get('stage') ?? '') ?? STAGES[0]!;
-    const def = this.stageDef;
     this.heatCoeff = HEAT[def.heatSource].base;
     this.session = StageSession.fromDef(def, ORDER.visibleCount, makeLcg(STAGE_SEED));
     const pool = ENEMIES.filter((e) => def.enemyPool.includes(e.id));
@@ -255,6 +272,8 @@ export class GameScene extends Phaser.Scene {
       this.session.servedScores.length,
       this.session.averageScore,
     );
+    // 왼손의 다음 계란 = 재고 어포던스 (구체화 패스)
+    this.hands.setHeldEgg(this.session.remainingStock > 0);
   }
 
   /** 스테이지 데이터의 아이템을 벽/선반에 배치 (GDD §9) — 탭 시 onItemTap */
@@ -396,6 +415,7 @@ export class GameScene extends Phaser.Scene {
       offsetY: 0,
       scaleX: 1,
     });
+    this.crackedOnce = true;
     bus.emit('egg:cracked', { eggId: id, x, y });
     this.sparks.emitParticleAt(x, y, 7); // 크랙 팝
     this.refreshStageUi();
@@ -406,6 +426,7 @@ export class GameScene extends Phaser.Scene {
     const targets = this.eggs.filter((e) => !e.flipped && !e.lost && !e.frozen);
     if (targets.length === 0) return;
     this.flipping = true;
+    this.flippedOnce = true;
     this.gauge.hide();
     for (const e of targets) e.outcome = judgeFlip(e.cooking.state, p);
 
@@ -501,6 +522,7 @@ export class GameScene extends Phaser.Scene {
   private serve(): void {
     const ready = this.eggs.filter((e) => (e.flipped || e.frozen) && !e.lost);
     if (ready.length === 0) return;
+    this.servedOnce = true;
     const scores: number[] = [];
     for (const e of ready) {
       let score = scoreFromQ(circularity(getPolygon(e.blob)));
@@ -738,6 +760,35 @@ export class GameScene extends Phaser.Scene {
       it.update(deltaMs);
     }
     for (const web of this.webTrophies) web.redraw(this.time.now);
+
+    // 스토브 불꽃 플리커 (열원 시각화)
+    this.stove.update(this.time.now);
+
+    // 무자막 동사 힌트 — 각 조작 첫 성공까지만 (탭→홀드→스와이프 순서로 자연 유도)
+    if (!this.ended && !this.flipping && !this.charging) {
+      const hintY = this.pan.center.y - HINT.abovePanPx;
+      if (!this.crackedOnce && this.liveEggs().length === 0 && this.session.remainingStock > 0) {
+        this.hint.show('crack', this.pan.center.x, this.pan.center.y);
+      } else if (
+        !this.flippedOnce &&
+        this.eggs.some(
+          (e) =>
+            !e.flipped &&
+            !e.lost &&
+            !e.frozen &&
+            (e.cooking.state === 'SET' || e.cooking.state === 'PERFECT_WINDOW'),
+        )
+      ) {
+        this.hint.show('flip', this.pan.center.x, hintY);
+      } else if (!this.servedOnce && this.eggs.some((e) => (e.flipped || e.frozen) && !e.lost)) {
+        this.hint.show('serve', this.pan.center.x, hintY);
+      } else {
+        this.hint.hide();
+      }
+      this.hint.update(this.time.now);
+    } else {
+      this.hint.hide();
+    }
 
     if (this.charging && !this.flipping) {
       const heldMs = this.time.now - this.downAtMs;

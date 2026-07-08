@@ -158,6 +158,30 @@ export const ITEM = {
   hitR: 58, // 탭 히트 반경(손가락 여유)
 } as const;
 
+/** 아이템 거치판 (구체화 패스) — 나무 판 + 걸이 */
+export const PLAQUE = { w: 116, h: 116, r: 16 } as const;
+
+/** 서빙 바 — 손님이 뒤에 서는 카운터 밴드 (구체화 패스) */
+export const SERVE_BAR = { topRatio: 0.19, heightPx: 52, lipPx: 6 } as const;
+
+/** 벽 타일 — 줄눈 격자 (구체화 패스, 은은하게) */
+export const WALL_TILE = { rowPx: 96, colPx: 150, lineW: 3, alpha: 0.16 } as const;
+
+/** 스토브 불꽃 — 팬 하단 림을 따라 배치 (구체화 패스, 열원 데이터 주도) */
+export const STOVE = {
+  flameCount: 9,
+  flameW: 22,
+  flameH: 30,
+  /** 불꽃 뿌리가 걸치는 팬 림 반경 비율 */
+  ringRatio: 0.92,
+  /** 하단 아크 각도 범위 (도) — 팬 아래쪽만 */
+  arcFromDeg: 25,
+  arcToDeg: 155,
+} as const;
+
+/** 조작 힌트 픽토그램 (무자막) */
+export const HINT = { r: 30, abovePanPx: 130 } as const;
+
 /** 재채기 손님 (GDD §8.1 ③) — 대기열 앞에서 팬 쪽으로 재채기 */
 export const SNEEZE = {
   xRatio: 0.28,

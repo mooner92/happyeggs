@@ -39,6 +39,7 @@ ADR의 핵심 원칙:
 | 0007 | 블롭 노이즈는 자체 1D 밸류 노이즈 | 채택 | [0007-value-noise-over-perlin.md](0007-value-noise-over-perlin.md) |
 | 0008 | balance.ts 범위: 게임플레이 튜닝 수치만 | 채택 | [0008-balance-file-scope.md](0008-balance-file-scope.md) |
 | 0009 | Bacon 톤 절차적 아트 + v1까지 연속 개발 | 채택 | [0009-procedural-bacon-art-and-continuous-dev.md](0009-procedural-bacon-art-and-continuous-dev.md) |
+| 0010 | 다이제틱 주방 무대 + 무자막 조작 힌트 | 채택 | [0010-diegetic-kitchen-scene.md](0010-diegetic-kitchen-scene.md) |
 
 > [!NOTE]
 > 세 ADR 모두 **이미 확정되어 있던 사항의 기록**이다 — 0001·0002는 [GDD](../../GDD.md) §3(고정, 변경 제안 금지)이, 0003은 2026-07-07 디렉터 지시가 결정 주체이며, [../DECISIONS.md](../DECISIONS.md)의 미결 항목이 승격된 것이 아니다. 미결 항목의 승격분은 0004부터다 — **0004~0008이 M0-1~5의 승격분**(2026-07-07, M0 스펙 승인 시 기본안 일괄 채택)이며, DECISION-01~07은 아직 미결이다.

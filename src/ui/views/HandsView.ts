@@ -1,18 +1,29 @@
 import Phaser from 'phaser';
 import { ANCHORS, DEPTH, HAND_SHAPE, toPx } from '../../data/layout';
-import { HAND_STYLE, SPATULA_STYLE } from '../../data/palette';
+import { HAND_STYLE, PALETTE, SPATULA_STYLE } from '../../data/palette';
 import { addSoftShadow } from '../textures';
 
-/** 1인칭 양손 placeholder — 왼손(팬 손잡이 쪽) + 오른손(뒤집개). 접지 그림자로 입체감. */
+/**
+ * 1인칭 양손 — 왼손은 **다음 계란을 쥐고**(재고 어포던스 + "깨기" 유도), 오른손은 뒤집개.
+ * 계란은 재고에 따라 setHeldEgg로 갱신(재고 0이면 빈손). 손 도형은 정적 1회 드로우.
+ */
 export class HandsView {
+  private readonly eggG: Phaser.GameObjects.Graphics;
+  private readonly left: { x: number; y: number };
+  private held = false;
+
   constructor(scene: Phaser.Scene) {
-    const left = toPx(ANCHORS.handLeft);
+    this.left = toPx(ANCHORS.handLeft);
+    const left = this.left;
     const right = toPx(ANCHORS.handRight);
     const pan = toPx(ANCHORS.pan);
     // 손 접지 그림자
     for (const p of [left, right]) {
       addSoftShadow(scene, p.x, p.y + HAND_SHAPE.h * 0.45, HAND_SHAPE.w * 1.6, HAND_SHAPE.h, DEPTH.hand - 1, 0.4);
     }
+    // 쥔 계란 — 주먹보다 먼저 생성(같은 depth) → 주먹이 계란 아래를 가려 "쥔" 모양
+    this.eggG = scene.add.graphics().setDepth(DEPTH.hand);
+
     const g = scene.add.graphics().setDepth(DEPTH.hand);
 
     // 오른손 뒤집개 — 손에서 팬 쪽으로 뻗는 손잡이(나무색) + 밝은 금속 날
@@ -35,5 +46,23 @@ export class HandsView {
       g.lineStyle(HAND_SHAPE.outline, HAND_STYLE.line, 1);
       g.strokeEllipse(p.x, p.y, HAND_SHAPE.w, HAND_SHAPE.h);
     }
+  }
+
+  /** 왼손에 다음 계란 표시 — 재고 있으면 쥐고, 없으면 빈손 */
+  setHeldEgg(on: boolean): void {
+    if (on === this.held) return;
+    this.held = on;
+    const g = this.eggG;
+    g.clear();
+    if (!on) return;
+    const x = this.left.x + 8;
+    const y = this.left.y - HAND_SHAPE.h * 0.62;
+    // 껍데기째 계란 — 흰 타원 + 하이라이트
+    g.fillStyle(PALETTE.white, 1);
+    g.fillEllipse(x, y, 56, 72);
+    g.lineStyle(3, 0xd9ccb4, 1);
+    g.strokeEllipse(x, y, 56, 72);
+    g.fillStyle(0xffffff, 0.75);
+    g.fillEllipse(x - 12, y - 16, 16, 22);
   }
 }
