@@ -6,7 +6,7 @@
 
 | 항목 | 상태 |
 | --- | --- |
-| 상태 | 🛠 **M0 구현 완료 — 폰 육안 확인 대기.** M0 스펙 **Implemented**(테스트 43/빌드 그린) · 브랜치 `feat/m0-skeleton` |
+| 상태 | ✅ **M0 Verified** — 테스트 43 + Playwright 시각 QA 통과 · 브랜치 `feat/m0-skeleton` |
 | 플랫폼 | 1차: **모바일 웹(세로 9:16)** + 데스크톱 웹 · 2차: Capacitor(iOS/Android) / Electron + steamworks.js(Steam) |
 | 스택 | Phaser 3 + TypeScript(strict) + Vite · Vitest · 자체 EventBus(외부 상태관리 라이브러리 금지) |
 | 레포 | github.com/mooner92/happyeggs · 문서 브랜치 `main` · 구현 브랜치 `feat/m{n}-*` · 문서화 시작 2026-07-07 |
@@ -146,7 +146,7 @@ happyeggs/
 
 ## 상태 & 로드맵
 
-**문서화 시작** 2026-07-07 · **현재 단계** 🛠 M0 구현 완료(2026-07-08) — 스펙 Implemented(테스트 43·빌드 그린), 폰 육안 확인 후 Verified·M1 착수.
+**문서화 시작** 2026-07-07 · **현재 단계** ✅ M0 Verified(2026-07-08) — 테스트 43 + Playwright 시각 QA 통과. 다음: M1 코어 루프.
 
 미결 결정: GDD §16 **DECISION-01~07(7건)은 미결**(기본안만 있음), M0-1~5는 확정(ADR-0004~0008) — [docs/DECISIONS.md](docs/DECISIONS.md).
 
@@ -154,7 +154,7 @@ happyeggs/
 
 | # | 이름 | 한 줄 요약 | 상태 |
 | --- | --- | --- | :---: |
-| M0 | 뼈대 | Vite+Phaser+TS 셋업, 4씬 구조, 세로 레이아웃, 탭으로 계란 깨기→블롭, 익힘 FSM, 디버그 HUD | ✅ 구현·자동검증 (폰 확인 대기) |
+| M0 | 뼈대 | Vite+Phaser+TS 셋업, 4씬 구조, 세로 레이아웃, 탭으로 계란 깨기→블롭, 익힘 FSM, 디버그 HUD | ✅ Verified |
 | M1 | 코어 루프 | 왕복 파워 게이지+뒤집기 판정 전부, 원형도 채점+테스트, 서빙, 손님 큐, 하드코딩 스테이지 1개 클리어 | ⏳ 대기 |
 | M2 | 이벤트 프레임워크 | 스케줄러, telegraph→window→resolve 파이프라인, 거미+강도 2종 완전 구현 | ⏳ 대기 |
 | M3 | 스테이지 시스템 | JSON 스테이지 로더, 실패 조건 3종, 결과 화면, PNG 합성/Web Share | ⏳ 대기 |

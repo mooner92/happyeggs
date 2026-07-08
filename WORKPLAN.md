@@ -88,11 +88,11 @@ flowchart TD
 
 ### 완료의 정의 (DoD — GDD §13 M0 인수 조건)
 - [x] `npm run test` 전체 통과 — **43 테스트**(익힘 모델 포함) + `tsc`·`eslint`·`build` 그린
-- [ ] `npm run dev` → 폰 브라우저에서 팬 탭으로 계란을 깨고, 블롭이 퍼지고, RAW→…→SMOKE 색 변화(타는 것)까지 **육안 확인** (디렉터 — 헤드리스 환경이라 자동화 불가)
+- [x] 팬 탭으로 계란을 깨고, 블롭이 퍼지고, RAW→…→SMOKE 색 변화(타는 것)까지 **Playwright 시각 QA로 검증** (`npm run qa` → `qa/shots`, 콘솔 에러 0)
 - [x] 스펙 as-built 갱신([docs/specs/M0-skeleton.md](docs/specs/M0-skeleton.md) §12) + 이 문서 체크 + README 상태 갱신
 
 > [!NOTE]
-> 스펙 상태는 **Implemented**(자동 검증 완료). 폰 육안 확인이 끝나면 **Verified**로 전진한다. M1 착수는 그 확인 후.
+> 스펙 상태 **Verified**(2026-07-08 — 테스트 43 + Playwright 시각 QA 통과). Playwright 검토로 UX 3건(두부 텍스트·뒤집개·팬 바닥) 개선 반영. M1 착수 가능.
 
 ### 리스크
 - **dt 스파이크**: 탭 이탈 후 복귀 시 큰 dt 1회로 계란이 즉시 전소 → dt 클램프(0.1s — [ADR-0006](docs/adr/0006-dt-clamp-background.md))로 방어.
