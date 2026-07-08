@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH } from '../../data/layout';
+import { DEPTH, PERSPECTIVE } from '../../data/layout';
 import type { EggStyle } from '../../data/palette';
 import { YOLK_STYLE } from '../../data/palette';
 import type { BlobState } from '../../systems/EggBlobModel';
@@ -24,8 +24,12 @@ export class EggView {
   }
 
   draw(blob: BlobState, style: EggStyle): void {
+    // 팬과 같은 3/4 원근 — 블롭 중심 기준으로 y를 눌러 팬 위에 눕게 한다
+    const sq = PERSPECTIVE.squashY;
+    const cy = blob.cy;
     for (let i = 0; i < this.points.length; i++) {
-      this.points[i]!.setTo(blob.verts[i * 2]!, blob.verts[i * 2 + 1]!);
+      const py = cy + (blob.verts[i * 2 + 1]! - cy) * sq;
+      this.points[i]!.setTo(blob.verts[i * 2]!, py);
     }
     const g = this.g;
     g.clear();
@@ -34,11 +38,12 @@ export class EggView {
     g.fillPoints(this.points, true);
     g.lineStyle(EDGE_WIDTH, style.edge, style.edgeAlpha);
     g.strokePoints(this.points, true, true);
-    // 노른자 — 흰자보다 살짝 불투명하게
+    // 노른자 — 흰자보다 살짝 불투명하게, 같은 원근으로 눌린 타원
+    const yolkY = cy + (blob.yolk.y - cy) * sq;
     g.fillStyle(YOLK_STYLE.fill, Math.min(1, style.alpha + 0.25));
-    g.fillCircle(blob.yolk.x, blob.yolk.y, blob.yolk.r);
+    g.fillEllipse(blob.yolk.x, yolkY, blob.yolk.r * 2, blob.yolk.r * 2 * sq);
     g.lineStyle(YOLK_EDGE_WIDTH, YOLK_STYLE.edge, style.alpha);
-    g.strokeCircle(blob.yolk.x, blob.yolk.y, blob.yolk.r);
+    g.strokeEllipse(blob.yolk.x, yolkY, blob.yolk.r * 2, blob.yolk.r * 2 * sq);
   }
 
   destroy(): void {

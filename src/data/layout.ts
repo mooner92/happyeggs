@@ -34,12 +34,20 @@ export const TEXT = {
   buttonSize: '28px',
 } as const;
 
+/** 3/4 원근 — 팬·계란을 세로로 눌러 살짝 누운(비스듬히 본) 느낌을 준다 (Bacon 톤). */
+export const PERSPECTIVE = {
+  /** 세로 압축 비율(1=정원, 작을수록 눕는다) */
+  squashY: 0.66,
+  /** 팬 옆벽(깊이) 두께 px — 하단 어두운 립으로 표현 */
+  panWallPx: 20,
+} as const;
+
 /** 팬 도형 표현 비율 (팬 반경 대비) */
 export const PAN_SHAPE = {
   rim: 1.06,
   handleWidth: 0.16,
-  /** 손잡이 시작점 — 팬 중심 기준 (반경 대비 비율) */
-  handleFrom: { x: -0.6, y: 0.6 },
+  /** 손잡이 시작점 — 팬 중심 기준 (반경 대비 비율, y는 원근 압축 전 기준) */
+  handleFrom: { x: -0.58, y: 0.5 },
 } as const;
 
 /** 손·뒤집개 도형 크기 (px, 표현 값) */
