@@ -16,8 +16,8 @@ export class ItemView {
   constructor(
     private readonly scene: Phaser.Scene,
     readonly id: string,
-    private readonly x: number,
-    private readonly y: number,
+    readonly x: number,
+    readonly y: number,
     onTap: (id: string) => void,
   ) {
     this.g = scene.add.graphics().setDepth(DEPTH.item);

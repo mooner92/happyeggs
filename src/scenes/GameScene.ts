@@ -49,6 +49,7 @@ import { SniperView } from '../ui/views/SniperView';
 import { SpiderView } from '../ui/views/SpiderView';
 import { SprinklerView } from '../ui/views/SprinklerView';
 import { StageHudView } from '../ui/views/StageHudView';
+import { ThiefView } from '../ui/views/ThiefView';
 
 const SEED_BASE = 12345;
 const SEED_STEP = 7919;
@@ -119,6 +120,8 @@ export class GameScene extends Phaser.Scene {
   private scheduler!: EventScheduler;
   private readonly enemyViews = new Map<EventInstance, EnemyView>();
   private items: ItemView[] = [];
+  /** 도둑에게 도난당한 아이템 id (해당 이벤트 방어 불가) — GDD §9 도난 연쇄 */
+  private readonly stolenItems = new Set<string>();
   private webTrophies: WebTrophyView[] = [];
 
   private steam!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -180,6 +183,7 @@ export class GameScene extends Phaser.Scene {
     this.flipping = false;
     this.enemyViews.clear();
     this.items = [];
+    this.stolenItems.clear();
     this.webTrophies = [];
 
     // 스테이지 로드 — ?stage=id 또는 첫 스테이지 (GDD §10)
@@ -445,12 +449,31 @@ export class GameScene extends Phaser.Scene {
         this.flyOff(e);
         return true;
       case 'PROJECTILE':
+        // RAW 뒤집기 = 발사체 → 앞 손님이 아이템 훔쳐 도주 (GDD §9 도난 연쇄)
+        e.lost = true;
+        this.flyOff(e);
+        this.triggerItemSteal();
+        return false;
       case 'FLEW_OFF':
       default:
         e.lost = true;
         this.flyOff(e);
         return false;
     }
+  }
+
+  /** RAW 발사 틈에 도둑이 아이템 하나를 훔쳐 도주 — 훔친 아이템은 방어 불가 (GDD §9) */
+  private triggerItemSteal(): void {
+    const victim = this.items.find((it) => !this.stolenItems.has(it.id));
+    if (!victim) return;
+    this.stolenItems.add(victim.id);
+    new ThiefView(this, victim.x, victim.y, () => {
+      victim.setHint(false);
+      victim.destroy();
+      this.items = this.items.filter((v) => v !== victim);
+    }, () => {
+      /* 도주 완료 — 별도 처리 없음 */
+    });
   }
 
   private flyOff(e: EggEntity): void {

@@ -134,6 +134,22 @@ const tapItem = async (page, it) => {
   await page.close();
 }
 
+// 9) 도난 연쇄 — RAW 뒤집기(발사) → 도둑이 아이템(뚜껑) 훔쳐 도주 (GDD §9)
+{
+  const page = await scene('stage=stage_02&events=off'); // scene()이 계란 1개 깸 (RAW)
+  await shot(page, '17-before-steal'); // 아이템 4종 배치
+  // RAW 상태에서 홀드-릴리즈 뒤집기 → PROJECTILE → 도난
+  await page.mouse.move(PAN.x, PAN.y);
+  await page.mouse.down();
+  await sleep(300); // TAP_MAX_MS(180) 초과 → 뒤집기 게이지
+  await page.mouse.up();
+  await sleep(250);
+  await shot(page, '18-thief-grab'); // 도둑 난입
+  await sleep(500);
+  await shot(page, '19-after-steal'); // 뚜껑 사라짐 (방어 불가)
+  await page.close();
+}
+
 await browser.close();
 console.log(JSON.stringify({ consoleErrors: errors }, null, 2));
 if (errors.length) process.exitCode = 1;

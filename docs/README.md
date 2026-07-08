@@ -44,7 +44,7 @@
 3. [specs/README.md](specs/README.md) → [specs/M0-skeleton.md](specs/M0-skeleton.md) — 승인된(Approved) M0 스펙
 
 > [!TIP]
-> M0 스펙과 M0-1~5는 2026-07-07 승인·확정되었습니다. 디렉터에게 남은 미결은 [DECISIONS.md](DECISIONS.md)의 **DECISION-01~07**(주로 M1·M4에서 필요)입니다.
+> M0~M4 스펙과 M0-1~5·DECISION-01·02·03·04·06·07은 확정되었습니다. 디렉터에게 남은 미결은 [DECISIONS.md](DECISIONS.md)의 **DECISION-05(가로 화면)**와 구현 파생 **08(총알 구멍 수치)**입니다.
 
 ### 👩‍💻 개발자 (구현·테스트를 한다)
 

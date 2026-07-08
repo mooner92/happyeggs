@@ -64,7 +64,7 @@ flowchart TD
 - [x] 미결 결정 M0-1~5 확정 → `docs/adr/` 승격 (ADR-0004~0008: 720×1280 / 실시간 / 0.1s 클램프 / 자체 밸류 노이즈 / 튜닝 수치만 balance.ts)
 
 > [!IMPORTANT]
-> **확인 필요: GDD §16의 DECISION-01~07은 여전히 미결**이다(주로 M1·M4에서 필요). 확정 전에 확정된 것처럼 구현하지 않는다 — [docs/DECISIONS.md](docs/DECISIONS.md).
+> GDD §16의 DECISION-03·07은 M1·M3에서, 01·02·04·06은 **M4 스펙(연속 개발)에서 기본안으로 확정**했다(디렉터가 재검토 가능). 남은 미결은 **DECISION-05(가로 화면)**과 구현 파생 **DECISION-08(총알 구멍 -12)**뿐 — [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ### 작업 체크리스트 (커밋 단위 — M0 스펙 §7, 각각 빌드·테스트 그린 유지)
 - [x] 1. `chore: scaffold vite + phaser3 + ts(strict) + vitest + eslint/prettier` — 모바일 메타(touch-action 등)·vite base 포함
@@ -138,19 +138,19 @@ flowchart TD
 
 **DoD**: 테스트 127 그린(스키마·별점·저장·fromDef 20 추가) + Playwright 클리어(★★★·PNG 다운로드)·스모크 실패(스프링클러). 스펙 Verified.
 
-## M4 — 적 확장 + 아이템 (미착수)
+## M4 — 적 확장 + 아이템 (스펙: Verified — 2026-07-08)
 
-나머지 적 4종과 아이템 배치·미스리드(GDD §9)를 완성해 "죽어보고 배우는" 재미를 구현한다.
+나머지 적 4종과 아이템 배치·미스리드(GDD §9)를 완성해 "죽어보고 배우는" 재미를 구현했다. 상세: [docs/specs/M4-enemies-items.md](docs/specs/M4-enemies-items.md).
 
-- [ ] 저격수 — 증식 트랩(직접 탭 시 +1, 최대 3명 [DECISION-04]) + 1초 펜싱칼 패링 + 방탄팬 탄흔
-- [ ] 파리 — 비행 중 무적·티배깅 3회, 착지 똥 전조 1초 탭 처치(별 이펙트), 방치 시 -20.000점
-- [ ] 재채기 손님 — 대응 방식 미결 [DECISION-01], 실패 시 즉시 게임 오버
-- [ ] 머리카락 손님 — 대응 방식 미결 [DECISION-02], 실패 시 -10.000점
-- [ ] 아이템 배치 시스템(스테이지 데이터 위치 정의) + decoy 스키마(`shield_decoy` 개그 연출)
-- [ ] RAW 뒤집기 발사 → 아이템 도난 → 해당 이벤트 방어 불가 상태 연쇄
-- [ ] 지역 확장 더미 JSON 1개로 스키마 수용 가능 증명(GDD §8.1 ⑧ — 구현은 안 함)
+- [x] 저격수 — 증식 트랩(직접 탭 시 +1, 최대 3 [DECISION-04]) + 펜싱칼 패링 + 방탄팬 탄흔(개당 -12 [DECISION-08])
+- [x] 파리 — 비행 중 무적·티배깅, 착지 똥 전조 탭 처치(별 이펙트), 방치 시 -20.000점
+- [x] 재채기 손님 — 뚜껑 탭 [DECISION-01], 실패 시 즉시 게임 오버(FailReason 'sneeze')
+- [x] 머리카락 손님 — 토치 소각 [DECISION-02], 실패 시 -10.000점
+- [x] 아이템 배치 시스템(스테이지 `items[]`) + decoy(`shield_decoy` gag 연출) + 정답 초록 힌트
+- [x] RAW 뒤집기 발사 → 아이템 도난(ThiefView) → 해당 이벤트 방어 불가 연쇄
+- [x] 지역 확장 더미 JSON(penguin_dummy, stageUnlock 99)로 스키마 수용 증명(GDD §8.1 ⑧)
 
-**DoD 요약**: 적 6종 전원 + 아이템 미스리드·도난 연쇄가 전부 동작한다.
+**DoD 요약**: 적 6종 전원 + 아이템 미스리드·도난 연쇄가 전부 동작(Playwright 16컷·Vitest 139). 실 등장은 stage_02부터(난이도 램프).
 
 ## M5 — 야간 + 스킨 (미착수)
 

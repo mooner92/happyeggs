@@ -6,7 +6,7 @@
 
 | 항목 | 내용 |
 |---|---|
-| 상태 | **Approved** (2026-07-08 — 연속 개발, [ADR-0009](../adr/0009-procedural-bacon-art-and-continuous-dev.md)) |
+| 상태 | **Verified** (2026-07-08 — 6증분 구현·Playwright 16컷·Vitest 139, [ADR-0009](../adr/0009-procedural-bacon-art-and-continuous-dev.md)) |
 | 작성일 | 2026-07-08 |
 | 근거 GDD 절 | [GDD](../../GDD.md) §8.1 ③④⑤⑥ · §9 아이템·미스리드 · §13 M4 |
 | 선행 | M3 **Verified** ([M3-stage-system.md](M3-stage-system.md)) |
@@ -72,10 +72,10 @@ M2에서 데이터 주도 이벤트 프레임워크(스폰·telegraph·window·r
 
 ## 8. 인수 조건 (GDD §13 M4)
 
-- [ ] 적 6종(거미·강도·재채기·머리카락·파리·저격수) 전원 성공/실패 재현 (Playwright)
-- [ ] 아이템 배치 + 미스리드(방패 decoy 개그) 동작
-- [ ] RAW 발사 → 아이템 도난 → 방어 불가 연쇄
-- [ ] `npm run test` 그린 + Playwright + 콘솔 에러 0
+- [x] 적 6종(거미·강도·재채기·머리카락·파리·저격수) 전원 성공/실패 재현 (Playwright — 거미·강도는 M2, 신규 4종은 `verify-m4-enemies` 16컷)
+- [x] 아이템 배치 + 미스리드(방패 decoy 개그) 동작
+- [x] RAW 발사 → 아이템 도난 → 방어 불가 연쇄
+- [x] `npm run test` 그린(139) + Playwright + 콘솔 에러 0
 
 ## 9. as-built
 
@@ -98,7 +98,11 @@ M2에서 데이터 주도 이벤트 프레임워크(스폰·telegraph·window·r
 - **스테이지 번호**: 스케줄러가 하드코딩 1 대신 `STAGES` 순번을 써 `sniper`(stageUnlock 2)가 stage_02부터 실제 등장.
 - **검증**: Vitest 139(+3, 저격수 정의·펜싱칼 라우팅·stageUnlock 필터). Playwright 5컷 추가(조준·락온+힌트·패링 성공·3빔 증식·구멍 3개), 콘솔 에러 0. 패링 성공 시 구멍 0 확인.
 
-### 증분 6 (예정) — RAW-flip 발사 → 아이템 도난 연쇄
+### 증분 6 (2026-07-08) — RAW-flip 발사 → 아이템 도난 연쇄
+
+- **도난 연쇄**(`ThiefView`): RAW 상태 뒤집기 = `PROJECTILE` 판정 → 계란이 발사체로 날아가는 틈에 `triggerItemSteal()`. 후드 도둑이 난입(스윕 인)해 아이템 하나를 낚아채(onGrab에서 `ItemView.destroy` + `stolenItems`에 등록) 가까운 가장자리로 도주.
+- **방어 불가**: 도난된 아이템은 `this.items`에서 제거되어 탭 존이 없어짐 → 해당 대응 이벤트(예: 뚜껑 도난 시 재채기)는 방어 불가 → 그 결과(재채기=게임오버 등)로 이어지는 연쇄.
+- **검증**: Playwright 3컷(배치→RAW 발사 도둑 난입→뚜껑 사라짐), 콘솔 에러 0. tsc/lint/test(139)/build 그린.
 
 ---
 
@@ -107,4 +111,4 @@ M2에서 데이터 주도 이벤트 프레임워크(스폰·telegraph·window·r
 - SDD: [README.md](README.md) · 선행: [M2-event-framework.md](M2-event-framework.md)·[M3-stage-system.md](M3-stage-system.md)
 - SSOT: [../../GDD.md](../../GDD.md) §8.1·§9 · 결정 로그: [../DECISIONS.md](../DECISIONS.md)
 
-최종 수정: 2026-07-08
+최종 수정: 2026-07-08 (Verified — 증분 1~6 완료)
