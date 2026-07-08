@@ -1,28 +1,47 @@
 import Phaser from 'phaser';
-import { DEBUG, EGG, HEAT, ORDER, STAGE1 } from '../data/balance';
-import { ANCHORS, FLIP_ANIM, SERVE_SWIPE_PX, TAP_MAX_MS, TEXT, toPx } from '../data/layout';
+import { DEBUG, EGG, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
+import { ENEMIES } from '../data/enemies';
+import {
+  ANCHORS,
+  DESIGN,
+  DOUBLE_TAP_MS,
+  DRAG_CUT_PX,
+  FLIP_ANIM,
+  SERVE_SWIPE_PX,
+  SPIDER,
+  TAP_MAX_MS,
+  TEXT,
+  toPx,
+} from '../data/layout';
 import { COOK_STATE_STYLE, HUD_TEXT, PALETTE } from '../data/palette';
 import { CookingModel } from '../systems/CookingModel';
 import type { BlobState } from '../systems/EggBlobModel';
 import { createBlob, getPolygon, stepSpread } from '../systems/EggBlobModel';
+import type { InputKey } from '../systems/enemyDef';
+import type { EventInstance } from '../systems/eventInstance';
+import { EventScheduler, type RangeRng } from '../systems/eventScheduler';
 import { bus } from '../systems/events';
 import { judgeFlip, PowerGauge, type FlipOutcome } from '../systems/flip';
 import { circularity, scoreFromQ } from '../systems/scoring';
 import { StageSession } from '../systems/stage';
 import { DebugHud } from '../ui/DebugHud';
 import { CounterView } from '../ui/views/CounterView';
+import type { EnemyView } from '../ui/views/EnemyView';
+import { CatView, WebTrophyView } from '../ui/views/EventEffects';
 import { EggView } from '../ui/views/EggView';
 import { HandsView } from '../ui/views/HandsView';
 import { PanView } from '../ui/views/PanView';
 import { PowerGaugeView } from '../ui/views/PowerGaugeView';
 import { QueueView } from '../ui/views/QueueView';
+import { RobberView } from '../ui/views/RobberView';
 import { ScorePopupView } from '../ui/views/ScorePopupView';
+import { SpiderView } from '../ui/views/SpiderView';
 import { StageHudView } from '../ui/views/StageHudView';
 
 const SEED_BASE = 12345;
 const SEED_STEP = 7919;
-/** 주문 생성용 고정 시드 (결정론) — 실난수 대신 LCG */
 const STAGE_SEED = 20260708;
+const EVENT_SEED = 424242;
 
 interface EggEntity {
   readonly id: number;
@@ -32,6 +51,9 @@ interface EggEntity {
   smokeCriticalEmitted: boolean;
   flipped: boolean;
   lost: boolean;
+  /** 반토막 등으로 형태 고정 — 익힘/퍼짐 정지, 서빙 가능(대개 저점수) */
+  frozen: boolean;
+  yolkBroken: boolean;
   outcome: FlipOutcome | null;
   offsetY: number;
   scaleX: number;
@@ -44,10 +66,26 @@ function foldBlob(blob: BlobState, scaleX: number): void {
   }
 }
 
+/** 아래 반쪽 정점을 중심선으로 접어 반토막(반달) — 원형도 폭락 (거미 실패, GDD §8.1 ①) */
+function bisectBlob(blob: BlobState): void {
+  const cy = blob.cy;
+  for (let i = 1; i < blob.verts.length; i += 2) {
+    if (blob.verts[i]! > cy) blob.verts[i] = cy;
+  }
+}
+
+function makeLcg(seed: number): RangeRng {
+  let s = seed;
+  return (min: number, max: number): number => {
+    s = (s * 1103515245 + 12345) & 0x7fffffff;
+    return min + (s % (max - min + 1));
+  };
+}
+
 /**
- * 코어 플레이 씬 (M1) — 하드코딩 스테이지 1개.
- * 제스처: 짧은 탭=깨기(주문 수만큼) · 홀드-릴리즈=뒤집기(게이지) · 위로 스와이프=서빙(원형도 채점).
- * 스테이지 진행(큐·재고·클리어/실패)은 순수 모델 StageSession이 결정한다.
+ * 코어 플레이 씬 (M2) — M1 스테이지 위에 데이터 주도 방해꾼 이벤트를 얹었다.
+ * 제스처: 탭=깨기 · 홀드릴리즈=뒤집기 · 위로 스와이프=서빙 · 드래그=거미줄 절단 · 더블탭=고양이(강도).
+ * 이벤트 스폰/해소는 순수 EventScheduler가, 게임 진행은 StageSession이 결정한다.
  */
 export class GameScene extends Phaser.Scene {
   private pan!: PanView;
@@ -58,6 +96,9 @@ export class GameScene extends Phaser.Scene {
   private stageHud!: StageHudView;
   private readonly powerGauge = new PowerGauge();
   private session!: StageSession;
+  private scheduler!: EventScheduler;
+  private readonly enemyViews = new Map<EventInstance, EnemyView>();
+  private webTrophies: WebTrophyView[] = [];
 
   private eggs: EggEntity[] = [];
   private nextEggId = 0;
@@ -67,6 +108,8 @@ export class GameScene extends Phaser.Scene {
   private flipping = false;
   private downAtMs = 0;
   private downPos = { x: 0, y: 0 };
+  private lastDownMs = -9999;
+  private suppressUp = false;
 
   constructor() {
     super('Game');
@@ -87,25 +130,41 @@ export class GameScene extends Phaser.Scene {
     this.ended = false;
     this.charging = false;
     this.flipping = false;
+    this.enemyViews.clear();
+    this.webTrophies = [];
 
-    // 하드코딩 스테이지 1 — 시드 LCG로 주문 결정론 생성
-    let seed = STAGE_SEED;
-    const randInt = (min: number, max: number): number => {
-      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-      return min + (seed % (max - min + 1));
-    };
     this.session = StageSession.hardcoded(
       STAGE1.customers,
       STAGE1.orderMin,
       STAGE1.orderMax,
       STAGE1.spareEggs,
       ORDER.visibleCount,
-      randInt,
+      makeLcg(STAGE_SEED),
+    );
+    this.scheduler = new EventScheduler(
+      ENEMIES,
+      STAGE1.eventBudget,
+      STAGE1.eventMaxConcurrent,
+      makeLcg(EVENT_SEED),
+      STAGE1.stageNumber,
+      STAGE1.eventSpawnGapMs,
     );
     this.refreshStageUi();
 
-    const debugOff = new URLSearchParams(window.location.search).get('debug') === '0';
-    this.hud = debugOff ? null : new DebugHud(this);
+    const params = new URLSearchParams(window.location.search);
+    this.hud = params.get('debug') === '0' ? null : new DebugHud(this);
+    // QA/디버그: ?spawn=ninja_spider|back_robber 로 스폰 (?spawnAfter=ms 로 지연 — 계란 준비 후)
+    const forced = params.get('spawn');
+    if (forced) {
+      const delay = Number(params.get('spawnAfter') ?? 0);
+      const doSpawn = (): void => {
+        if (this.ended) return;
+        const inst = this.scheduler.forceSpawn(forced);
+        if (inst) this.handleSpawn(inst);
+      };
+      if (delay > 0) this.time.delayedCall(delay, doSpawn);
+      else doSpawn();
+    }
 
     const btnPos = toPx(ANCHORS.resultButton);
     this.add
@@ -145,17 +204,39 @@ export class GameScene extends Phaser.Scene {
   }
 
   private hasUnflipped(): boolean {
-    return this.eggs.some((e) => !e.flipped && !e.lost);
+    return this.eggs.some((e) => !e.flipped && !e.lost && !e.frozen);
+  }
+
+  /** 지금 window 중인 이벤트가 요구하는 입력 (없으면 null) */
+  private activeWindowInput(): InputKey | null {
+    for (const inst of this.scheduler.active) {
+      if (inst.phase === 'WINDOW') return inst.def.input;
+    }
+    return null;
   }
 
   private onDown(pointer: Phaser.Input.Pointer): void {
     if (this.flipping || this.ended) return;
-    this.downAtMs = this.time.now;
+    const now = this.time.now;
+    // 더블탭 — 강도 이벤트 대응
+    if (now - this.lastDownMs < DOUBLE_TAP_MS && this.activeWindowInput() === 'double_tap') {
+      const hit = this.scheduler.tryInput('double_tap');
+      if (hit) this.resolveEvent(hit, 'success');
+      this.suppressUp = true;
+    }
+    this.lastDownMs = now;
+    this.downAtMs = now;
     this.downPos = { x: pointer.x, y: pointer.y };
     this.charging = this.hasUnflipped();
   }
 
   private onUp(pointer: Phaser.Input.Pointer): void {
+    if (this.suppressUp) {
+      this.suppressUp = false;
+      this.charging = false;
+      this.gauge.hide();
+      return;
+    }
     if (this.flipping || this.ended) return;
     const heldMs = this.time.now - this.downAtMs;
     const dx = pointer.x - this.downPos.x;
@@ -164,8 +245,22 @@ export class GameScene extends Phaser.Scene {
     this.charging = false;
     this.gauge.hide();
 
-    const hasFlipped = this.eggs.some((e) => e.flipped && !e.lost);
+    const windowInput = this.activeWindowInput();
 
+    // 드래그 = 거미줄 절단
+    if (drag >= DRAG_CUT_PX && windowInput === 'drag_cut') {
+      const hit = this.scheduler.tryInput('drag_cut');
+      if (hit) {
+        this.resolveEvent(hit, 'success');
+        return;
+      }
+    }
+    // 강도 이벤트 중에는 단일 탭을 소비(더블탭 대기) — 깨기로 새지 않게
+    if (windowInput === 'double_tap' && heldMs < TAP_MAX_MS && drag < DRAG_CUT_PX) {
+      return;
+    }
+
+    const hasFlipped = this.eggs.some((e) => e.flipped && !e.lost);
     if (drag >= SERVE_SWIPE_PX && dy < 0 && hasFlipped) {
       this.serve();
       return;
@@ -182,7 +277,6 @@ export class GameScene extends Phaser.Scene {
   private crack(x: number, y: number): void {
     const order = this.session.currentOrder;
     if (!order) return;
-    // 이번 주문 수만큼만, 재고가 있을 때만
     if (this.liveEggs().length >= order.eggCount) return;
     if (this.eggs.length >= DEBUG.MAX_EGGS) return;
     if (!this.session.consumeEgg()) return;
@@ -196,6 +290,8 @@ export class GameScene extends Phaser.Scene {
       smokeCriticalEmitted: false,
       flipped: false,
       lost: false,
+      frozen: false,
+      yolkBroken: false,
       outcome: null,
       offsetY: 0,
       scaleX: 1,
@@ -206,7 +302,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private startFlip(p: number): void {
-    const targets = this.eggs.filter((e) => !e.flipped && !e.lost);
+    const targets = this.eggs.filter((e) => !e.flipped && !e.lost && !e.frozen);
     if (targets.length === 0) return;
     this.flipping = true;
     this.gauge.hide();
@@ -230,7 +326,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  /** 반환: 이 계란이 까만뒷면(주문 실패 유발)인지 */
   private resolveFlip(e: EggEntity): boolean {
     e.offsetY = 0;
     switch (e.outcome) {
@@ -275,7 +370,6 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  /** 까만뒷면 뒤집기 → 현재 손님 주문 실패(재고 도난) + 다음 손님 */
   private failOrder(): void {
     this.session.failCurrent();
     for (const e of this.eggs) e.view.destroy();
@@ -285,11 +379,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   private serve(): void {
-    const ready = this.eggs.filter((e) => e.flipped && !e.lost);
+    const ready = this.eggs.filter((e) => (e.flipped || e.frozen) && !e.lost);
     if (ready.length === 0) return;
     const scores: number[] = [];
     for (const e of ready) {
-      const score = scoreFromQ(circularity(getPolygon(e.blob)));
+      let score = scoreFromQ(circularity(getPolygon(e.blob)));
+      if (e.yolkBroken) score = Math.max(0, score + SCORE.deduction.yolkBurst);
       scores.push(score);
       this.scorePopup.popup(e.blob.cx, e.blob.cy - 40, score);
       e.view.destroy();
@@ -298,6 +393,60 @@ export class GameScene extends Phaser.Scene {
     this.session.serveCurrent(scores);
     this.refreshStageUi();
     this.checkStatus();
+  }
+
+  // ── 이벤트(방해꾼) ──
+
+  private handleSpawn(inst: EventInstance): void {
+    const view = this.enemyViewFor(inst);
+    if (view) this.enemyViews.set(inst, view);
+  }
+
+  private enemyViewFor(inst: EventInstance): EnemyView | null {
+    switch (inst.def.id) {
+      case 'ninja_spider':
+        return new SpiderView(this);
+      case 'back_robber':
+        return new RobberView(this);
+      default:
+        return null; // 핸들러 없는 적(더미)은 뷰 없음
+    }
+  }
+
+  private resolveEvent(inst: EventInstance, result: 'success' | 'fail'): void {
+    const view = this.enemyViews.get(inst);
+    if (!view) return; // 이미 처리됨
+    this.enemyViews.delete(inst);
+    const keys = result === 'success' ? inst.def.onSuccess : inst.def.onFail;
+    for (const k of keys) this.runEffect(k);
+    view.playResolve(result, () => view.destroy());
+  }
+
+  private runEffect(key: string): void {
+    switch (key) {
+      case 'egg_bisect': {
+        const target = this.liveEggs().find((e) => !e.flipped && !e.frozen) ?? this.liveEggs()[0];
+        if (target) {
+          bisectBlob(target.blob);
+          target.frozen = true; // stepSpread가 반토막을 덮어쓰지 않게 고정
+        }
+        break;
+      }
+      case 'yolk_steal': {
+        const target = this.liveEggs().find((e) => !e.yolkBroken);
+        if (target) target.yolkBroken = true;
+        break;
+      }
+      case 'fx_web_flutter':
+        this.webTrophies.push(new WebTrophyView(this, DESIGN.width * SPIDER.hangXRatio));
+        break;
+      case 'fx_cat_chase':
+        new CatView(this);
+        break;
+      // sfx_*, actor_escape, fx_placeholder → 무음 스텁 / playResolve가 처리
+      default:
+        break;
+    }
   }
 
   private checkStatus(): void {
@@ -320,7 +469,7 @@ export class GameScene extends Phaser.Scene {
     const dtSec = Math.min(deltaMs / 1000, DEBUG.MAX_DT_SEC);
 
     for (const egg of this.eggs) {
-      if (!egg.flipped && !egg.lost && !this.flipping) {
+      if (!egg.flipped && !egg.lost && !egg.frozen && !this.flipping) {
         stepSpread(egg.blob, dtSec);
         const before = egg.cooking.state;
         const transitions = egg.cooking.update(dtSec, HEAT.gas.base);
@@ -332,16 +481,27 @@ export class GameScene extends Phaser.Scene {
         if (egg.cooking.smokeCriticalFired && !egg.smokeCriticalEmitted) {
           egg.smokeCriticalEmitted = true;
           bus.emit('cook:smokeCritical', { eggId: egg.id });
-          // SMOKE 방치 → 스프링클러 → 즉시 실패 (GDD §5)
           this.session.forceFail('smoke');
           this.checkStatus();
         }
       }
-      egg.view.draw(egg.blob, COOK_STATE_STYLE[egg.cooking.state], {
-        offsetY: egg.offsetY,
-        scaleX: egg.scaleX,
-      });
+      egg.view.draw(
+        egg.blob,
+        COOK_STATE_STYLE[egg.cooking.state],
+        { offsetY: egg.offsetY, scaleX: egg.scaleX },
+        egg.yolkBroken,
+      );
     }
+
+    // 방해꾼 이벤트 — 조리 중에만 스폰
+    if (!this.ended) {
+      const cookingActive = this.liveEggs().length > 0;
+      const { spawned, resolved } = this.scheduler.update(deltaMs, cookingActive);
+      for (const inst of spawned) this.handleSpawn(inst);
+      for (const inst of resolved) this.resolveEvent(inst, 'fail');
+      for (const inst of this.scheduler.active) this.enemyViews.get(inst)?.update(inst);
+    }
+    for (const web of this.webTrophies) web.redraw(this.time.now);
 
     if (this.charging && !this.flipping) {
       const heldMs = this.time.now - this.downAtMs;

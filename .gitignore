@@ -20,3 +20,4 @@ coverage/
 # QA 스크린샷 (생성물)
 qa/shots/
 qa/shots-m1/
+qa/shots-m2/

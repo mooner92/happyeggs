@@ -38,6 +38,15 @@ export class EventScheduler {
     return this.budget;
   }
 
+  /** 강제 스폰 (QA/디버그) — budget·cooldown·concurrent 무시하고 즉시 스폰 */
+  forceSpawn(id: string): EventInstance | null {
+    const def = this.pool.find((d) => d.id === id);
+    if (!def) return null;
+    const inst = new EventInstance(def);
+    this.instances.push(inst);
+    return inst;
+  }
+
   /** 이번 스테이지에 등장 가능한 적 */
   private eligible(): EnemyDef[] {
     return this.pool.filter((d) => d.stageUnlock <= this.stage);
@@ -98,10 +107,13 @@ export class EventScheduler {
     return { spawned, resolved };
   }
 
-  /** 대응 입력을 window 중인 활성 이벤트에 전달 — 첫 성공 시 그 인스턴스 반환 */
+  /** 대응 입력을 window 중인 활성 이벤트에 전달 — 첫 성공 시 쿨다운 설정 후 그 인스턴스 반환 */
   tryInput(key: InputKey): EventInstance | null {
     for (const inst of this.instances) {
-      if (inst.tryInput(key)) return inst;
+      if (inst.tryInput(key)) {
+        this.cooldown.set(inst.def.id, this.rng(inst.def.cooldownMs[0], inst.def.cooldownMs[1]));
+        return inst;
+      }
     }
     return null;
   }
