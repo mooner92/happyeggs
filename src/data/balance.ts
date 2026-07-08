@@ -71,6 +71,38 @@ export const EGG: BlobConfig = {
   YOLK_OFFSET_RATIO: 0.18,
 };
 
+/** 뒤집기 — 왕복 파워 게이지 + 스윗스팟 판정 윈도우 (GDD §6.3, §0 "판정 윈도우는 balance.ts") */
+export const FLIP = {
+  /** 게이지 왕복 1주기(초) — 홀드 시 0→1→0 */
+  periodSec: 1.2,
+  /** 클린 착지 스윗스팟 [lo, hi] (게이지 값 0~1) */
+  sweetspot: { lo: 0.7, hi: 0.9 },
+} as const;
+
+/** 채점 고정 감점 (GDD §6.1·§8.1 — 원형도와 별개, M4 이벤트에서 발생) */
+export const SCORE = {
+  deduction: {
+    yolkBurst: -15.0,
+    hair: -10.0,
+    flyPoop: -20.0,
+  },
+} as const;
+
+/** 손님/주문 (GDD §7) */
+export const ORDER = {
+  /** 대기열에 보이는 최대 손님 수 (3~4) */
+  visibleCount: 4,
+} as const;
+
+/** M1 하드코딩 스테이지 1 (M3에서 JSON 스테이지 데이터로 이전) */
+export const STAGE1 = {
+  customers: 5,
+  orderMin: 1,
+  orderMax: 2,
+  /** 여유분 — eggStock = 주문 총합 + spareEggs (GDD §6.5) */
+  spareEggs: 3,
+} as const;
+
 /** M0 디버그·방어 상수 */
 export const DEBUG = {
   /** M0 팬 동시 계란 상한(퍼짐 다중 확인용). 정식 panCapacity는 M3 스테이지 데이터 [DECISION-07] */
