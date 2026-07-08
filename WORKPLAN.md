@@ -126,17 +126,17 @@ flowchart TD
 
 **DoD**: 테스트 109 그린(스케줄러·인스턴스 16 추가) + Playwright 4경로(거미 절단/반토막·강도 고양이/노른자, 콘솔 에러 0). 스펙 Verified.
 
-## M3 — 스테이지 시스템 (미착수)
+## M3 — 스테이지 시스템 (스펙: Verified — 2026-07-08)
 
-스테이지를 JSON 데이터(GDD §10)로 정의해 로드하고, 실패·클리어·결과 공유까지 스테이지 단위 플레이를 닫는다.
+스테이지를 JSON 데이터(GDD §10)로 정의해 로드하고, 실패·클리어·결과 공유까지 닫았다. 상세: [docs/specs/M3-stage-system.md](docs/specs/M3-stage-system.md).
 
-- [ ] JSON 스테이지 로더(heatSource/customers/panCapacity/eggStock/enemyPool/items/starThresholds)
-- [ ] 실패 조건 3종 — 스프링클러(SMOKE 방치) / 재고 < 남은 주문량 / 즉사형(재채기)
-- [ ] 결과 화면 — 후라이 접시 배열 + 점수 카운트업 + 평균/최고점 + 별점(GDD §11)
-- [ ] 오프스크린 Canvas PNG 합성 → Web Share API(미지원 시 다운로드 + 클립보드), 파일명 `eggflip_stage04_92.317.png` 규칙
-- [ ] localStorage 래퍼(schema version 필드) — 진행도 저장 (GDD §3 스택 항목, M0 스펙 YAGNI 경계에서 M3로 연기)
+- [x] JSON 스테이지 로더(heatSource/customers/panCapacity/eggStock/enemyPool/eventBudget/starThresholds) + 검증
+- [x] 실패 조건 — 스프링클러(SMOKE 방치, 물 연출) / 재고 < 남은 주문량 데드락 (재채기 즉사는 M4)
+- [x] 결과 화면 — 후라이 접시 배열 + 점수 카운트업 + 최고점 + 별점 팝인(GDD §11)
+- [x] PNG 합성(renderer.snapshot) → Web Share(미지원 시 다운로드), 파일명 `eggflip_<stage>_<avg>.png`
+- [x] localStorage 래퍼(schema version) — 스테이지별 최고 평균·별점·클리어 저장
 
-**DoD 요약**: 스테이지 JSON로 시작→플레이→실패/클리어→결과 공유까지 끊김 없이 이어진다.
+**DoD**: 테스트 127 그린(스키마·별점·저장·fromDef 20 추가) + Playwright 클리어(★★★·PNG 다운로드)·스모크 실패(스프링클러). 스펙 Verified.
 
 ## M4 — 적 확장 + 아이템 (미착수)
 

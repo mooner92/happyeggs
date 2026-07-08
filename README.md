@@ -6,7 +6,7 @@
 
 | 항목 | 상태 |
 | --- | --- |
-| 상태 | ✅ **M2 Verified** — 데이터 주도 방해꾼(거미·강도) · 테스트 109 + Playwright · 브랜치 `feat/m1-core-loop` |
+| 상태 | ✅ **M3 Verified** — JSON 스테이지·결과 화면(별점·PNG 공유) · 테스트 127 + Playwright · 브랜치 `feat/m1-core-loop` |
 | 플랫폼 | 1차: **모바일 웹(세로 9:16)** + 데스크톱 웹 · 2차: Capacitor(iOS/Android) / Electron + steamworks.js(Steam) |
 | 스택 | Phaser 3 + TypeScript(strict) + Vite · Vitest · 자체 EventBus(외부 상태관리 라이브러리 금지) |
 | 레포 | github.com/mooner92/happyeggs · 문서 브랜치 `main` · 구현 브랜치 `feat/m{n}-*` · 문서화 시작 2026-07-07 |
@@ -146,7 +146,7 @@ happyeggs/
 
 ## 상태 & 로드맵
 
-**문서화 시작** 2026-07-07 · **현재 단계** ✅ M2 Verified(2026-07-08) — 데이터 주도 방해꾼 이벤트(거미·강도) 완성, 테스트 109 + Playwright. 다음: M3 스테이지 시스템.
+**문서화 시작** 2026-07-07 · **현재 단계** ✅ M3 Verified(2026-07-08) — JSON 스테이지·결과 화면(별점·PNG 공유) 완성, 테스트 127 + Playwright. 다음: M4 적 확장 + 아이템.
 
 미결 결정: GDD §16 **DECISION-01~07(7건)은 미결**(기본안만 있음), M0-1~5는 확정(ADR-0004~0008) — [docs/DECISIONS.md](docs/DECISIONS.md).
 
@@ -157,7 +157,7 @@ happyeggs/
 | M0 | 뼈대 | Vite+Phaser+TS 셋업, 4씬 구조, 세로 레이아웃, 탭으로 계란 깨기→블롭, 익힘 FSM, 디버그 HUD | ✅ Verified |
 | M1 | 코어 루프 | 왕복 파워 게이지+뒤집기 판정 전부, 원형도 채점+테스트, 서빙, 손님 큐, 하드코딩 스테이지 1개 클리어 | ✅ Verified |
 | M2 | 이벤트 프레임워크 | 스케줄러, telegraph→window→resolve 파이프라인, 거미+강도 2종 완전 구현 | ✅ Verified |
-| M3 | 스테이지 시스템 | JSON 스테이지 로더, 실패 조건 3종, 결과 화면, PNG 합성/Web Share | ⏳ 대기 |
+| M3 | 스테이지 시스템 | JSON 스테이지 로더, 실패 조건 3종, 결과 화면, PNG 합성/Web Share | ✅ Verified |
 | M4 | 적 확장 + 아이템 | 저격수·파리·재채기·머리카락, 아이템 배치+미스리드(decoy), 도난→방어 불가 연쇄 | ⏳ 대기 |
 | M5 | 야간 + 스킨 | 열화상 셰이더, 불 끄기 적+가짜불 스티커, 스킨 스키마/상점 UI/장착 저장 | ⏳ 대기 |
 | M6 | 폴리시 | 이징/파티클/화면 흔들림, SFX 스텁 훅, 성능 패스(폰 실측 60fps), balance.ts 1차 튜닝 | ⏳ 대기 |
