@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ANCHORS, DESIGN, PAN_RADIUS_RATIO, PAN_SHAPE, toPx } from '../../data/layout';
+import { ANCHORS, DEPTH, DESIGN, PAN_RADIUS_RATIO, PAN_SHAPE, toPx } from '../../data/layout';
 import { PALETTE } from '../../data/palette';
 
 /** 팬 placeholder — 원판 + 림 + 왼손 방향 손잡이 (도형). 크랙 유효 영역 판정 제공. */
@@ -11,7 +11,7 @@ export class PanView {
     this.center = toPx(ANCHORS.pan);
     this.radius = DESIGN.width * PAN_RADIUS_RATIO;
 
-    const g = scene.add.graphics();
+    const g = scene.add.graphics().setDepth(DEPTH.pan);
     // 손잡이 — 팬 가장자리에서 왼손 앵커로
     const hand = toPx(ANCHORS.handLeft);
     g.lineStyle(this.radius * PAN_SHAPE.handleWidth, PALETTE.panRim, 1);

@@ -11,7 +11,9 @@ export class ResultScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor(PALETTE.bg);
     this.add
-      .text(DESIGN.width / 2, DESIGN.height / 2, 'RESULT (M0 stub)\n탭하면 재시작', {
+      // M0 placeholder는 ASCII만 — 기기 한글 폰트에 의존하면 미탑재 시 두부(□)로 깨진다.
+      // 한글 UI 폰트 번들링은 폴리시(M6)·GDD §14 아트 파이프라인 소관. GDD §15 "UI 텍스트 최소화"도 지지.
+      .text(DESIGN.width / 2, DESIGN.height / 2, 'RESULT (M0 stub)\ntap to restart', {
         align: 'center',
         fontSize: TEXT.resultSize,
         color: css(PALETTE.white),

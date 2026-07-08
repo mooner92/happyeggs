@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DEPTH } from '../../data/layout';
 import type { EggStyle } from '../../data/palette';
 import { YOLK_STYLE } from '../../data/palette';
 import type { BlobState } from '../../systems/EggBlobModel';
@@ -18,7 +19,7 @@ export class EggView {
   private readonly points: Phaser.Geom.Point[];
 
   constructor(scene: Phaser.Scene, vertexCount: number) {
-    this.g = scene.add.graphics();
+    this.g = scene.add.graphics().setDepth(DEPTH.egg);
     this.points = Array.from({ length: vertexCount }, () => new Phaser.Geom.Point());
   }
 

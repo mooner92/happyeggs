@@ -6,6 +6,7 @@ import type { BlobState } from '../systems/EggBlobModel';
 import { createBlob, stepSpread } from '../systems/EggBlobModel';
 import { bus } from '../systems/events';
 import { DebugHud } from '../ui/DebugHud';
+import { CounterView } from '../ui/views/CounterView';
 import { EggView } from '../ui/views/EggView';
 import { HandsView } from '../ui/views/HandsView';
 import { PanView } from '../ui/views/PanView';
@@ -41,6 +42,7 @@ export class GameScene extends Phaser.Scene {
 
   create(): void {
     this.cameras.main.setBackgroundColor(PALETTE.bg);
+    new CounterView(this);
     this.pan = new PanView(this);
     new HandsView(this);
 

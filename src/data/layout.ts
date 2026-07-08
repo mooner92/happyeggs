@@ -47,9 +47,25 @@ export const HAND_SHAPE = {
   w: 120,
   h: 96,
   outline: 5,
-  spatulaW: 18,
-  bladeW: 92,
-  bladeH: 66,
-  /** 뒤집개 날 위치 — 오른손에서 팬 방향으로 뻗는 비율 */
-  spatulaReach: 0.45,
+  spatulaW: 22,
+  bladeW: 108,
+  bladeH: 74,
+  bladeEdge: 4,
+  /** 뒤집개 날 위치 — 오른손에서 팬 방향으로 뻗는 비율(팬 위로 걸치게 크게) */
+  spatulaReach: 0.62,
+} as const;
+
+/** 주방 카운터 밴드 — 팬 아래를 받치는 바닥 (표현 값) */
+export const COUNTER_BAND = {
+  topRatio: 0.66, // 화면 높이 대비 카운터 윗면 위치
+  lipPx: 12, // 윗면 하이라이트 두께
+} as const;
+
+/** 렌더 깊이 — 카운터(뒤) < 팬 < 계란 < 손(앞) < HUD */
+export const DEPTH = {
+  counter: -3,
+  pan: -2,
+  egg: 0,
+  hand: 2,
+  hud: 1000,
 } as const;
