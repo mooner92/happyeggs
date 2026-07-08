@@ -66,6 +66,16 @@ export const GAUGE_STYLE = {
 /** 점수 팝업 텍스트 색 */
 export const SCORE_TEXT = { good: '#9be564', normal: '#f2e9dc', bad: '#ff8c55' } as const;
 
+/** 결과 화면 — 접시·별 */
+export const RESULT_STYLE = {
+  plate: 0xf2ede3,
+  plateEdge: 0xcdc4b4,
+  plateShade: 0xe2dacb,
+  starOn: 0xf5c542,
+  starOff: 0x4a453d,
+  starEdge: 0x8a6a1f,
+} as const;
+
 /** 손님(Bacon 톤 캐릭터) — 몸통 색은 인덱스별로 순환, 얼굴/윤곽 공통 */
 export const CUSTOMER_STYLE = {
   bodies: [0xe8a15c, 0x7bb5a3, 0xc98a9b, 0x8f9bd1, 0xd4b483] as const,
