@@ -60,6 +60,20 @@ export const GAUGE_STYLE = {
 /** 점수 팝업 텍스트 색 */
 export const SCORE_TEXT = { good: '#9be564', normal: '#f2e9dc', bad: '#ff8c55' } as const;
 
+/** 손님(Bacon 톤 캐릭터) — 몸통 색은 인덱스별로 순환, 얼굴/윤곽 공통 */
+export const CUSTOMER_STYLE = {
+  bodies: [0xe8a15c, 0x7bb5a3, 0xc98a9b, 0x8f9bd1, 0xd4b483] as const,
+  outline: 0x2b2117,
+  face: 0x2b2117,
+  cheek: 0xffffff,
+} as const;
+
+/** 말풍선 */
+export const BUBBLE_STYLE = { fill: 0xf7f1e5, edge: 0x2b2117 } as const;
+
+/** 스테이지 HUD 텍스트 색 */
+export const STAGE_HUD_TEXT = { normal: '#f2e9dc', low: '#ff8c55' } as const;
+
 /** 숫자 색 → CSS 문자열 (Phaser Text 스타일용) */
 export function css(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;

@@ -75,6 +75,7 @@ export const DEPTH = {
   pan: -2,
   egg: 0,
   hand: 2,
+  queue: 5,
   gauge: 900,
   popup: 950,
   hud: 1000,
@@ -105,3 +106,18 @@ export const FLIP_ANIM = {
 export const SERVE_SWIPE_PX = 90;
 /** 탭(깨기)로 판정하는 최대 홀드 ms — 이보다 길게 누르면 뒤집기 게이지 */
 export const TAP_MAX_MS = 180;
+
+/** 손님 대기열 — 상단, 앞에서부터 x비율·스케일 (GDD §7 3~4명 표시) */
+export const QUEUE = {
+  yRatio: 0.15,
+  xRatios: [0.3, 0.5, 0.66, 0.8],
+  scales: [1.0, 0.82, 0.72, 0.66],
+  bodyW: 128,
+  bodyH: 150,
+} as const;
+
+/** 말풍선 (맨 앞 손님 주문) */
+export const BUBBLE = { w: 130, h: 74, abovePx: 118, eggIconR: 13, eggGapPx: 34 } as const;
+
+/** 스테이지 HUD — 재고(상단 중앙)·서빙 평균 */
+export const STAGE_HUD = { yRatio: 0.045, eggIconR: 15, gapPx: 34, xRatio: 0.5 } as const;
