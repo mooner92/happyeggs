@@ -10,15 +10,18 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "qa": "node qa/verify-m0.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.61.1",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
+    "playwright": "^1.61.1",
     "prettier": "^3.9.4",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.63.0",

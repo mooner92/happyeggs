@@ -16,3 +16,6 @@ coverage/
 
 # 도구 상태 (oh-my-claudecode 세션 상태 — 커밋 대상 아님)
 .omc/
+
+# QA 스크린샷 (생성물)
+qa/shots/
