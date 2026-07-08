@@ -59,7 +59,7 @@ stateDiagram-v2
 |---|---|---|
 | [M0-skeleton.md](M0-skeleton.md) | M0 — 뼈대 | **Approved** (2026-07-07 승인 — 구현 진행) |
 | [M1-core-loop.md](M1-core-loop.md) | M1 — 코어 루프 | **Verified** (2026-07-08 — 스테이지 클리어) |
-| M2-event-framework.md | M2 — 이벤트 프레임워크 | 미작성 |
+| [M2-event-framework.md](M2-event-framework.md) | M2 — 이벤트 프레임워크 | **Verified** (2026-07-08) |
 | M3-stage-system.md | M3 — 스테이지 시스템 | 미작성 |
 | M4-enemies-items.md | M4 — 적 확장 + 아이템 | 미작성 |
 | M5-night-skins.md | M5 — 야간 + 스킨 | 미작성 |
