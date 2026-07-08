@@ -25,6 +25,10 @@ import { bus } from '../systems/events';
 import { judgeFlip, PowerGauge, type FlipOutcome } from '../systems/flip';
 import { circularity, scoreFromQ } from '../systems/scoring';
 import { StageSession } from '../systems/stage';
+import type { StageDef } from '../systems/stageDef';
+import { findStage, STAGES } from '../data/stages';
+import { starsFor } from '../systems/stars';
+import { recordResult, type KVStorage } from '../systems/save';
 import { DebugHud } from '../ui/DebugHud';
 import { CounterView } from '../ui/views/CounterView';
 import type { EnemyView } from '../ui/views/EnemyView';
@@ -37,6 +41,7 @@ import { QueueView } from '../ui/views/QueueView';
 import { RobberView } from '../ui/views/RobberView';
 import { ScorePopupView } from '../ui/views/ScorePopupView';
 import { SpiderView } from '../ui/views/SpiderView';
+import { SprinklerView } from '../ui/views/SprinklerView';
 import { StageHudView } from '../ui/views/StageHudView';
 
 const SEED_BASE = 12345;
@@ -97,6 +102,8 @@ export class GameScene extends Phaser.Scene {
   private stageHud!: StageHudView;
   private readonly powerGauge = new PowerGauge();
   private session!: StageSession;
+  private stageDef!: StageDef;
+  private heatCoeff = 1;
   private scheduler!: EventScheduler;
   private readonly enemyViews = new Map<EventInstance, EnemyView>();
   private webTrophies: WebTrophyView[] = [];
@@ -108,6 +115,7 @@ export class GameScene extends Phaser.Scene {
   private eggs: EggEntity[] = [];
   private nextEggId = 0;
   private ended = false;
+  private smokeFailing = false;
 
   private charging = false;
   private flipping = false;
@@ -160,17 +168,18 @@ export class GameScene extends Phaser.Scene {
     this.enemyViews.clear();
     this.webTrophies = [];
 
-    this.session = StageSession.hardcoded(
-      STAGE1.customers,
-      STAGE1.orderMin,
-      STAGE1.orderMax,
-      STAGE1.spareEggs,
-      ORDER.visibleCount,
-      makeLcg(STAGE_SEED),
-    );
+    // 스테이지 로드 — ?stage=id 또는 첫 스테이지 (GDD §10)
+    const params = new URLSearchParams(window.location.search);
+    this.stageDef = findStage(params.get('stage') ?? '') ?? STAGES[0]!;
+    const def = this.stageDef;
+    this.heatCoeff = HEAT[def.heatSource].base;
+    this.session = StageSession.fromDef(def, ORDER.visibleCount, makeLcg(STAGE_SEED));
+    const pool = ENEMIES.filter((e) => def.enemyPool.includes(e.id));
+    // QA/디버그: ?events=off 로 방해꾼 스폰 정지 (결과 화면 등 검증용)
+    const eventBudget = params.get('events') === 'off' ? 0 : def.eventBudget;
     this.scheduler = new EventScheduler(
-      ENEMIES,
-      STAGE1.eventBudget,
+      pool,
+      eventBudget,
       STAGE1.eventMaxConcurrent,
       makeLcg(EVENT_SEED),
       STAGE1.stageNumber,
@@ -178,7 +187,6 @@ export class GameScene extends Phaser.Scene {
     );
     this.refreshStageUi();
 
-    const params = new URLSearchParams(window.location.search);
     this.hud = params.get('debug') === '0' ? null : new DebugHud(this);
     // QA/디버그: ?spawn=ninja_spider|back_robber 로 스폰 (?spawnAfter=ms 로 지연 — 계란 준비 후)
     const forced = params.get('spawn');
@@ -304,8 +312,8 @@ export class GameScene extends Phaser.Scene {
   private crack(x: number, y: number): void {
     const order = this.session.currentOrder;
     if (!order) return;
-    if (this.liveEggs().length >= order.eggCount) return;
-    if (this.eggs.length >= DEBUG.MAX_EGGS) return;
+    const cap = Math.min(order.eggCount, this.stageDef.panCapacity, DEBUG.MAX_EGGS);
+    if (this.liveEggs().length >= cap) return;
     if (!this.session.consumeEgg()) return;
 
     const id = this.nextEggId++;
@@ -478,6 +486,16 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** SMOKE 방치 → 스프링클러 연출 후 실패 (GDD §5) */
+  private triggerSmokeFail(): void {
+    if (this.ended || this.smokeFailing) return;
+    this.smokeFailing = true;
+    this.session.forceFail('smoke');
+    new SprinklerView(this);
+    this.cameras.main.flash(220, 150, 190, 255);
+    this.time.delayedCall(1200, () => this.endStage());
+  }
+
   private checkStatus(): void {
     if (this.session.status !== 'PLAYING') this.endStage();
   }
@@ -485,10 +503,30 @@ export class GameScene extends Phaser.Scene {
   private endStage(): void {
     if (this.ended) return;
     this.ended = true;
+    const cleared = this.session.status === 'CLEARED';
+    const avg = this.session.averageScore;
+    const stars = starsFor(avg, this.stageDef.starThresholds);
+
+    // 진행도 저장 (localStorage, schema version) — 클리어 시에만 최고 기록 갱신
+    let best = avg;
+    try {
+      const storage = window.localStorage as unknown as KVStorage;
+      const save = cleared
+        ? recordResult(storage, this.stageDef.id, avg, stars, true)
+        : recordResult(storage, this.stageDef.id, 0, 0, false);
+      best = save.stages[this.stageDef.id]?.bestAverage ?? avg;
+    } catch {
+      /* localStorage 미지원 환경 무시 */
+    }
+
     this.scene.start('Result', {
       status: this.session.status,
       reason: this.session.failReason,
-      average: this.session.averageScore,
+      stageId: this.stageDef.id,
+      average: avg,
+      best,
+      stars,
+      scores: this.session.servedScores.slice(),
       served: this.session.servedScores.length,
       failed: this.session.failedCount,
     });
@@ -503,7 +541,7 @@ export class GameScene extends Phaser.Scene {
       if (!egg.flipped && !egg.lost && !egg.frozen && !this.flipping) {
         stepSpread(egg.blob, dtSec);
         const before = egg.cooking.state;
-        const transitions = egg.cooking.update(dtSec, HEAT.gas.base);
+        const transitions = egg.cooking.update(dtSec, this.heatCoeff);
         let from = before;
         for (const to of transitions) {
           bus.emit('cook:stateChanged', { eggId: egg.id, from, to });
@@ -512,8 +550,7 @@ export class GameScene extends Phaser.Scene {
         if (egg.cooking.smokeCriticalFired && !egg.smokeCriticalEmitted) {
           egg.smokeCriticalEmitted = true;
           bus.emit('cook:smokeCritical', { eggId: egg.id });
-          this.session.forceFail('smoke');
-          this.checkStatus();
+          this.triggerSmokeFail();
         }
       }
       egg.view.draw(
