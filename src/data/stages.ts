@@ -29,7 +29,7 @@ export const STAGES: readonly StageDef[] = [
     orderRange: [1, 2],
     panCapacity: 2,
     eggStock: 14,
-    enemyPool: ['ninja_spider', 'back_robber', 'sneeze_troll', 'hair_troll', 'fly'],
+    enemyPool: ['ninja_spider', 'back_robber', 'sneeze_troll', 'hair_troll', 'fly', 'sniper'],
     eventBudget: 4,
     starThresholds: [82.0, 91.0, 97.0],
     items: [

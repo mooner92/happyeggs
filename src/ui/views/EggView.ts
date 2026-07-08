@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { DEPTH, PERSPECTIVE } from '../../data/layout';
 import type { EggStyle } from '../../data/palette';
-import { EGG_GLOSS, YOLK_STYLE } from '../../data/palette';
+import { EGG_GLOSS, SNIPER_STYLE, YOLK_STYLE } from '../../data/palette';
 import type { BlobState } from '../../systems/EggBlobModel';
 
 /** 블롭 폴리곤 외곽선 두께 (표현 값) */
@@ -32,7 +32,13 @@ export class EggView {
     this.points = Array.from({ length: vertexCount }, () => new Phaser.Geom.Point());
   }
 
-  draw(blob: BlobState, style: EggStyle, transform: EggTransform = IDENTITY, yolkBroken = false): void {
+  draw(
+    blob: BlobState,
+    style: EggStyle,
+    transform: EggTransform = IDENTITY,
+    yolkBroken = false,
+    bulletHoles = 0,
+  ): void {
     const sq = PERSPECTIVE.squashY;
     const cx = blob.cx;
     const cy = blob.cy;
@@ -79,6 +85,16 @@ export class EggView {
       // 노른자 하이라이트 (도톰한 광택 점)
       g.fillStyle(YOLK_STYLE.highlight, Math.min(1, style.alpha) * 0.85);
       g.fillEllipse(yolkX - yr * 0.32 * scaleX, yolkY - yr * 0.3 * sq, yr * 0.7 * scaleX, yr * 0.55 * sq);
+    }
+    // 총알 구멍 (저격수 실패, GDD §8.1 ⑤) — 흰자 위 어두운 구멍, 결정론적 배치
+    for (let i = 0; i < bulletHoles; i++) {
+      const a = 0.8 + i * 2.4; // 고정 각(무작위 없이 결정론)
+      const hx = cx + Math.cos(a) * r * 0.5 * scaleX;
+      const hy = cy + Math.sin(a) * r * 0.5 * sq + offsetY;
+      g.fillStyle(SNIPER_STYLE.hole, Math.min(1, style.alpha + 0.2));
+      g.fillEllipse(hx, hy, r * 0.34 * scaleX, r * 0.34 * sq);
+      g.lineStyle(2, 0x000000, style.alpha * 0.6);
+      g.strokeEllipse(hx, hy, r * 0.34 * scaleX, r * 0.34 * sq);
     }
   }
 

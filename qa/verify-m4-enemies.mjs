@@ -106,6 +106,34 @@ const tapItem = async (page, it) => {
   await page.close();
 }
 
+// 7) 저격수 — 조준(telegraph) → 락온(window) 펜싱칼 탭(패링 성공)
+// window(1300~2800ms)에 여유있게 탭하려 락온 직후 즉시 패링 (스크린샷 지연이 여유를 갉아먹지 않게)
+{
+  const page = await scene('stage=stage_02&spawn=sniper&events=off');
+  await sleep(300); // ~1000ms 조준(telegraph)
+  await shot(page, '12-sniper-aim');
+  await sleep(500); // ~1500ms 락온(window 진입)
+  await shot(page, '13-sniper-lock');
+  await tapItem(page, ITEM.sword); // 펜싱칼 패링 (window 한복판)
+  await sleep(350);
+  await shot(page, '14-sniper-parry');
+  await page.close();
+}
+
+// 8) 저격수 함정 — 레이저 직접 탭 ×2 = 증원(3빔) → 방치 시 구멍 3개
+{
+  const page = await scene('stage=stage_02&spawn=sniper&events=off');
+  await sleep(1400); // window 진입
+  await page.mouse.click(PAN.x, H * 0.3); // 빔 직접 탭 (함정)
+  await sleep(120);
+  await page.mouse.click(PAN.x, H * 0.3); // 또 탭 → 3빔
+  await sleep(120);
+  await shot(page, '15-sniper-multiplied');
+  await sleep(1500); // window 만료 → bullet_hole ×3
+  await shot(page, '16-sniper-holes');
+  await page.close();
+}
+
 await browser.close();
 console.log(JSON.stringify({ consoleErrors: errors }, null, 2));
 if (errors.length) process.exitCode = 1;

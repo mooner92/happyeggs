@@ -85,6 +85,8 @@ export const SCORE = {
     yolkBurst: -15.0,
     hair: -10.0,
     flyPoop: -20.0,
+    /** 저격수 총알 구멍 1개당 (GDD §8.1 ⑤ "채점 반영" — 정확 수치 미명시, [DECISION-08]) */
+    bulletHole: -12.0,
   },
 } as const;
 

@@ -180,3 +180,14 @@ export const FLY = {
   landXRatio: 0.5,
   landYRatio: 0.5,
 } as const;
+
+/** 저격수 (GDD §8.1 ⑤) — 화면 상단 밖에서 조준, 팬으로 빔. 증식 시 좌우로 벌어짐 */
+export const SNIPER = {
+  yRatio: 0.08, // 저격수 헤드(빔 시작점) 위치 — 대기열 위로 띄워 겹침 방지
+  targetYRatio: 0.5, // 빔 도달점(팬)
+  headR: 26,
+  beamW: 5,
+  /** 증식 시 헤드 x 간격 비율(중앙 기준) */
+  multiplyGapRatio: 0.18,
+  maxMultiply: 3, // DECISION-04
+} as const;

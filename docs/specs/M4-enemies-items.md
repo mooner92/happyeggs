@@ -89,7 +89,16 @@ M2에서 데이터 주도 이벤트 프레임워크(스폰·telegraph·window·r
 - **적 스테이지 배정**: 신규 3종은 `stage_02` 풀에 편입(난이도 램프). `stage_01`은 거미·강도 유지.
 - **검증**: Vitest 136 통과(+9, `m4Items.test.ts` — 적 정의·아이템 매핑·탭 라우팅·감점). Playwright `verify-m4-enemies.mjs` 12컷(배치·decoy 개그·재채기 성공/게임오버·머리카락 소각·파리 티배깅/착지/격추), 콘솔 에러 0. tsc/lint/build 그린.
 
-### 증분 5–6 (예정) — 저격수 + decoy 미스리드/도난 연쇄
+### 증분 5 (2026-07-08) — 저격수 + decoy 미스리드
+
+- **저격수**(`SniperView`): 상단에서 팬 조준(점선 스윕, 전조) → 락온 빔(윈도우). `fencing_sword` 탭 = 패링 반사(초록) / 방치 = `bullet_hole` → 대상 후라이에 구멍(`EggView`가 결정론 배치로 렌더).
+- **증식 함정**(DECISION-04): 빔/헤드 직접 탭 시 `addBeam()`으로 +1(최대 3, `SNIPER.maxMultiply`). 헤드가 좌우로 벌어지고 빔이 늘어남. 실패 시 구멍 = 증식 수(3빔이면 3구멍). 직접 탭은 `suppressUp`으로 크랙과 분리.
+- **decoy 미스리드**(GDD §9): 저격수 활성 시 정답 `fencing_sword`가 초록 힌트, 나란한 `shield_decoy` 탭은 `gag()`(손잡이 툭, 무해) — 일반 아이템 시스템으로 자연히 성립.
+- **감점**: `SCORE.deduction.bulletHole = −12`(구멍 1개당, [DECISION-08] 신규 — GDD 수치 미명시). 서빙 점수에 누적.
+- **스테이지 번호**: 스케줄러가 하드코딩 1 대신 `STAGES` 순번을 써 `sniper`(stageUnlock 2)가 stage_02부터 실제 등장.
+- **검증**: Vitest 139(+3, 저격수 정의·펜싱칼 라우팅·stageUnlock 필터). Playwright 5컷 추가(조준·락온+힌트·패링 성공·3빔 증식·구멍 3개), 콘솔 에러 0. 패링 성공 시 구멍 0 확인.
+
+### 증분 6 (예정) — RAW-flip 발사 → 아이템 도난 연쇄
 
 ---
 

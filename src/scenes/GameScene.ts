@@ -45,6 +45,7 @@ import { QueueView } from '../ui/views/QueueView';
 import { RobberView } from '../ui/views/RobberView';
 import { ScorePopupView } from '../ui/views/ScorePopupView';
 import { SneezeView } from '../ui/views/SneezeView';
+import { SniperView } from '../ui/views/SniperView';
 import { SpiderView } from '../ui/views/SpiderView';
 import { SprinklerView } from '../ui/views/SprinklerView';
 import { StageHudView } from '../ui/views/StageHudView';
@@ -69,6 +70,8 @@ interface EggEntity {
   hairPenalty: boolean;
   /** 파리 똥 감점(−20) 대상 (GDD §8.1 ⑥) */
   flyPenalty: boolean;
+  /** 저격수 총알 구멍 수 (GDD §8.1 ⑤) — 개당 −12 */
+  bulletHoles: number;
   outcome: FlipOutcome | null;
   offsetY: number;
   scaleX: number;
@@ -188,12 +191,14 @@ export class GameScene extends Phaser.Scene {
     const pool = ENEMIES.filter((e) => def.enemyPool.includes(e.id));
     // QA/디버그: ?events=off 로 방해꾼 스폰 정지 (결과 화면 등 검증용)
     const eventBudget = params.get('events') === 'off' ? 0 : def.eventBudget;
+    // 스테이지 번호 = STAGES 순번(1-base) — 적 stageUnlock 필터 근거 (미등록 스테이지는 1)
+    const stageNumber = STAGES.findIndex((s) => s.id === def.id) + 1 || STAGE1.stageNumber;
     this.scheduler = new EventScheduler(
       pool,
       eventBudget,
       STAGE1.eventMaxConcurrent,
       makeLcg(EVENT_SEED),
-      STAGE1.stageNumber,
+      stageNumber,
       STAGE1.eventSpawnGapMs,
     );
     this.refreshStageUi();
@@ -382,6 +387,7 @@ export class GameScene extends Phaser.Scene {
       yolkBroken: false,
       hairPenalty: false,
       flyPenalty: false,
+      bulletHoles: 0,
       outcome: null,
       offsetY: 0,
       scaleX: 1,
@@ -478,6 +484,8 @@ export class GameScene extends Phaser.Scene {
       if (e.yolkBroken) score = Math.max(0, score + SCORE.deduction.yolkBurst);
       if (e.hairPenalty) score = Math.max(0, score + SCORE.deduction.hair);
       if (e.flyPenalty) score = Math.max(0, score + SCORE.deduction.flyPoop);
+      if (e.bulletHoles > 0)
+        score = Math.max(0, score + SCORE.deduction.bulletHole * e.bulletHoles);
       scores.push(score);
       this.scorePopup.popup(e.blob.cx, e.blob.cy - 40, score);
       e.view.destroy();
@@ -507,21 +515,32 @@ export class GameScene extends Phaser.Scene {
         return new HairView(this);
       case 'fly':
         return new FlyView(this);
+      case 'sniper':
+        return new SniperView(this, () => this.onSniperTrap(inst));
       default:
         return null; // 핸들러 없는 적(더미)은 뷰 없음
     }
+  }
+
+  /** 저격수 레이저 직접 탭 = 함정(증원, DECISION-04). 이어질 크랙 탭을 소비 */
+  private onSniperTrap(inst: EventInstance): void {
+    const view = this.enemyViews.get(inst);
+    if (view instanceof SniperView) view.addBeam();
+    this.suppressUp = true;
   }
 
   private resolveEvent(inst: EventInstance, result: 'success' | 'fail'): void {
     const view = this.enemyViews.get(inst);
     if (!view) return; // 이미 처리됨
     this.enemyViews.delete(inst);
+    // 저격수 실패 시 구멍 수 = 증식 수 (직접 탭 함정으로 늘어남)
+    const holes = view instanceof SniperView ? view.multiplier : 1;
     const keys = result === 'success' ? inst.def.onSuccess : inst.def.onFail;
-    for (const k of keys) this.runEffect(k);
+    for (const k of keys) this.runEffect(k, holes);
     view.playResolve(result, () => view.destroy());
   }
 
-  private runEffect(key: string): void {
+  private runEffect(key: string, count = 1): void {
     switch (key) {
       case 'egg_bisect': {
         const target = this.liveEggs().find((e) => !e.flipped && !e.frozen) ?? this.liveEggs()[0];
@@ -568,6 +587,16 @@ export class GameScene extends Phaser.Scene {
       case 'fx_star_kill':
         this.sparks.emitParticleAt(DESIGN.width * 0.5, DESIGN.height * 0.5, 10);
         break;
+      case 'fx_parry_reflect':
+        // 펜싱칼 패링 반사 (GDD §8.1 ⑤) — 초록 스파크
+        this.sparks.emitParticleAt(DESIGN.width * 0.5, DESIGN.height * 0.5, 8);
+        break;
+      case 'bullet_hole': {
+        // 저격수 실패 → 대상 후라이에 구멍 count개 (증식 수만큼)
+        const target = this.liveEggs().find((e) => !e.flipped && !e.frozen) ?? this.liveEggs()[0];
+        if (target) target.bulletHoles += count;
+        break;
+      }
       // sfx_*, actor_escape, fx_placeholder → 무음 스텁 / playResolve가 처리
       default:
         break;
@@ -656,6 +685,7 @@ export class GameScene extends Phaser.Scene {
         COOK_STATE_STYLE[egg.cooking.state],
         { offsetY: egg.offsetY, scaleX: egg.scaleX },
         egg.yolkBroken,
+        egg.bulletHoles,
       );
       // 지글지글 스팀 — 익는 중(SET~OVERDONE)일 때 위로 피어오른다
       if (emitSteam && !egg.flipped && !egg.lost && !egg.frozen) {

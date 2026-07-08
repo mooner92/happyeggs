@@ -62,6 +62,18 @@ export const ENEMIES: readonly EnemyDef[] = [
     onSuccess: ['fx_star_kill', 'sfx_pop'],
     onFail: ['fly_poop', 'actor_escape'],
   },
+  // ⑤ 저격수 (GDD §8.1 ⑤) — 레이저 조준 → 펜싱칼 탭(패링) 반사. 레이저 직접 탭 = +1 증원(최대 3, DECISION-04). 방치 = 후라이 구멍
+  {
+    id: 'sniper',
+    stageUnlock: 2,
+    telegraphMs: 1300, // 조준 스윕
+    responseWindowMs: 1500, // 락온(패링 허용)
+    input: 'fencing_sword',
+    cooldownMs: [10000, 16000],
+    maxConcurrent: 1,
+    onSuccess: ['fx_parry_reflect', 'sfx_clang'],
+    onFail: ['bullet_hole', 'actor_escape'],
+  },
   // ⑧ 지역 확장 더미 (GDD §8.1 ⑧) — 핸들러 없이 스키마 수용만 증명. stageUnlock 99라 미등장.
   {
     id: 'penguin_dummy',

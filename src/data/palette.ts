@@ -149,6 +149,17 @@ export const FLY_STYLE = {
   star: 0xf5c542,
 } as const;
 
+/** 저격수 (GDD §8.1 ⑤) — 조준 레이저·락온·총알 구멍 */
+export const SNIPER_STYLE = {
+  body: 0x353b33,
+  bodyEdge: 0x14170f,
+  aim: 0xff5544, // 조준 스윕(점선)
+  lock: 0xff2a2a, // 락온 빔
+  reflect: 0x9be564, // 패링 반사
+  hole: 0x1a120a, // 총알 구멍
+  scope: 0x9be564,
+} as const;
+
 /** 숫자 색 → CSS 문자열 (Phaser Text 스타일용) */
 export function css(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;
