@@ -112,6 +112,43 @@ export const CAT_STYLE = { body: 0x4a4a52, ear: 0x2f2f37, eye: 0x9be564 } as con
 /** 전조(위험) 표시 색 */
 export const TELEGRAPH_STYLE = { warn: 0xff5544, web: 0xc9c9d4 } as const;
 
+/** 주방 아이템 (GDD §9) — 절차적 도형. 뚜껑·토치·펜싱칼·방패(decoy) */
+export const ITEM_STYLE = {
+  plate: 0x2b2117, // 벽걸이 판 배경
+  lid: 0xb9bcc2,
+  lidEdge: 0x6b6e74,
+  lidKnob: 0x8f6a3a,
+  torchStick: 0x9a7b4a,
+  torchFlame: 0xf5902a,
+  torchFlameCore: 0xffd66b,
+  sword: 0xd4d7dd,
+  swordEdge: 0x6b6e74,
+  swordGuard: 0xc99a3a,
+  shield: 0xc0562f,
+  shieldEdge: 0x7a2f1a,
+  shieldBoss: 0xe8c66b,
+} as const;
+
+/** 재채기 손님 — 침 구름 */
+export const SNEEZE_STYLE = {
+  body: 0xc98a9b,
+  face: 0x2b2117,
+  spray: 0xbfe0ff,
+  nose: 0xe86a55,
+} as const;
+
+/** 머리카락 손님 — 낙하하는 머리카락 */
+export const HAIR_STYLE = { strand: 0x2b2117, burn: 0xf5902a } as const;
+
+/** 파리 — 몸통·날개·똥 */
+export const FLY_STYLE = {
+  body: 0x1c1c22,
+  wing: 0xcfd6df,
+  eye: 0xff5544,
+  poop: 0x6b4a2b,
+  star: 0xf5c542,
+} as const;
+
 /** 숫자 색 → CSS 문자열 (Phaser Text 스타일용) */
 export function css(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;

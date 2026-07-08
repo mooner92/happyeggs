@@ -26,6 +26,42 @@ export const ENEMIES: readonly EnemyDef[] = [
     onSuccess: ['fx_cat_chase', 'sfx_meow'],
     onFail: ['yolk_steal', 'actor_escape'],
   },
+  // ③ 재채기 손님 (GDD §8.1 ③) — 팬 뚜껑 탭으로 침 차단. 실패 = 즉시 게임 오버 (DECISION-01)
+  {
+    id: 'sneeze_troll',
+    stageUnlock: 1,
+    telegraphMs: 1100,
+    responseWindowMs: 1600,
+    input: 'lid',
+    cooldownMs: [9000, 15000],
+    maxConcurrent: 1,
+    onSuccess: ['fx_lid_block', 'sfx_lid'],
+    onFail: ['game_over_sneeze', 'actor_escape'],
+  },
+  // ④ 머리카락 손님 (GDD §8.1 ④) — 토치로 공중 소각. 실패 = 해당 계란 -10 (DECISION-02)
+  {
+    id: 'hair_troll',
+    stageUnlock: 1,
+    telegraphMs: 1000,
+    responseWindowMs: 1700,
+    input: 'torch',
+    cooldownMs: [8000, 14000],
+    maxConcurrent: 1,
+    onSuccess: ['fx_torch_burn', 'sfx_sizzle'],
+    onFail: ['hair_land', 'actor_escape'],
+  },
+  // ⑥ 파리 (GDD §8.1 ⑥) — 착지 후 똥 전조 때 탭하면 별 처치. 방치 = -20
+  {
+    id: 'fly',
+    stageUnlock: 1,
+    telegraphMs: 1400, // 비행+티배깅(무적)
+    responseWindowMs: 1000, // 착지 후 똥 전조(탭 허용)
+    input: 'tap',
+    cooldownMs: [7000, 12000],
+    maxConcurrent: 1,
+    onSuccess: ['fx_star_kill', 'sfx_pop'],
+    onFail: ['fly_poop', 'actor_escape'],
+  },
   // ⑧ 지역 확장 더미 (GDD §8.1 ⑧) — 핸들러 없이 스키마 수용만 증명. stageUnlock 99라 미등장.
   {
     id: 'penguin_dummy',

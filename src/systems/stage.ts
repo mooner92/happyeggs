@@ -6,7 +6,7 @@ import { stageAverage } from './scoring';
 import type { StageDef } from './stageDef';
 
 export type StageStatus = 'PLAYING' | 'CLEARED' | 'FAILED';
-export type FailReason = 'deadlock' | 'smoke' | null;
+export type FailReason = 'deadlock' | 'smoke' | 'sneeze' | null;
 
 export class StageSession {
   private readonly queue: CustomerQueue;

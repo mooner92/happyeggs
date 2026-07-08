@@ -14,6 +14,12 @@ export const STAGES: readonly StageDef[] = [
     enemyPool: ['ninja_spider', 'back_robber'],
     eventBudget: 3,
     starThresholds: [80.0, 90.0, 96.0],
+    items: [
+      { id: 'lid', pos: 'wall_left' },
+      { id: 'torch', pos: 'stove_side' },
+      { id: 'fencing_sword', pos: 'wall_right' },
+      { id: 'shield_decoy', pos: 'shelf' },
+    ],
   },
   {
     id: 'stage_02',
@@ -23,9 +29,15 @@ export const STAGES: readonly StageDef[] = [
     orderRange: [1, 2],
     panCapacity: 2,
     eggStock: 14,
-    enemyPool: ['ninja_spider', 'back_robber'],
+    enemyPool: ['ninja_spider', 'back_robber', 'sneeze_troll', 'hair_troll', 'fly'],
     eventBudget: 4,
     starThresholds: [82.0, 91.0, 97.0],
+    items: [
+      { id: 'lid', pos: 'wall_left' },
+      { id: 'torch', pos: 'stove_side' },
+      { id: 'fencing_sword', pos: 'wall_right' },
+      { id: 'shield_decoy', pos: 'shelf' },
+    ],
   },
 ];
 

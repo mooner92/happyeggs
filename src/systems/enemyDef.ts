@@ -1,7 +1,16 @@
 // 방해꾼 이벤트 공통 스키마 (GDD §8) — 새 적 = 이 데이터 1항목 + 입력 핸들러 1개. 순수 타입.
 
-/** 대응 입력 키 (GDD §4 입력 사전) */
-export type InputKey = 'drag_cut' | 'double_tap' | 'tap' | 'swipe' | 'hold_release' | 'parry';
+/** 대응 입력 키 (GDD §4 입력 사전) — 아이템 탭은 아이템 id를 키로 쓴다 (M4) */
+export type InputKey =
+  | 'drag_cut'
+  | 'double_tap'
+  | 'tap'
+  | 'swipe'
+  | 'hold_release'
+  | 'parry'
+  | 'lid'
+  | 'torch'
+  | 'fencing_sword';
 
 export interface EnemyDef {
   readonly id: string;

@@ -24,19 +24,6 @@ const shot = (n) => page.screenshot({ path: `${OUT}/${n}.png` });
 await page.goto(`${BASE}?renderer=canvas&stage=stage_01&events=off`, { waitUntil: 'networkidle' });
 await sleep(600);
 
-// 이벤트 대응: 드래그(거미줄 절단) + 더블탭(고양이)을 매 루프 시도 (없으면 무해)
-async function handleEvents() {
-  await page.mouse.move(W * 0.5, H * 0.42);
-  await page.mouse.down();
-  await page.mouse.move(W * 0.32, H * 0.5, { steps: 5 });
-  await page.mouse.up();
-  await sleep(60);
-  await page.mouse.click(W * 0.7, H * 0.3);
-  await sleep(70);
-  await page.mouse.click(W * 0.7, H * 0.3);
-  await sleep(60);
-}
-
 async function serveOne() {
   await page.mouse.click(PAN.x - 40, PAN.y);
   await sleep(180);

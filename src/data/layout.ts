@@ -76,6 +76,7 @@ export const DEPTH = {
   egg: 0,
   hand: 2,
   queue: 5,
+  item: 6,
   enemy: 40,
   effect: 45,
   gauge: 900,
@@ -149,3 +150,33 @@ export const EVENT_BAR = { w: 110, h: 12, abovePx: 54 } as const;
 export const DRAG_CUT_PX = 70;
 /** 더블탭 판정 최대 간격 ms */
 export const DOUBLE_TAP_MS = 260;
+
+/** 주방 아이템 (GDD §9) — 벽/선반에 배치, 탭 가능 (M4) */
+export const ITEM = {
+  size: 96, // 히트영역/도형 기준 크기 px
+  drawR: 40, // 도형 반경
+  hitR: 58, // 탭 히트 반경(손가락 여유)
+} as const;
+
+/** 재채기 손님 (GDD §8.1 ③) — 대기열 앞에서 팬 쪽으로 재채기 */
+export const SNEEZE = {
+  xRatio: 0.28,
+  yRatio: 0.24,
+  bodyW: 110,
+  bodyH: 130,
+} as const;
+
+/** 머리카락 손님 (GDD §8.1 ④) — 위에서 팬으로 낙하하는 머리카락 */
+export const HAIR = {
+  xRatio: 0.5,
+  fromYRatio: 0.18,
+  toYRatio: 0.55, // 팬 표면
+  len: 90,
+} as const;
+
+/** 파리 (GDD §8.1 ⑥) — 비행→팬 착지→똥 전조 */
+export const FLY = {
+  bodyR: 15,
+  landXRatio: 0.5,
+  landYRatio: 0.5,
+} as const;

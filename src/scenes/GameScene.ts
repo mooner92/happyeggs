@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { DEBUG, EGG, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
 import { ENEMIES } from '../data/enemies';
+import { ITEMS, ITEM_POS } from '../data/items';
 import {
   ANCHORS,
   DEPTH,
@@ -34,12 +35,16 @@ import { CounterView } from '../ui/views/CounterView';
 import type { EnemyView } from '../ui/views/EnemyView';
 import { CatView, WebTrophyView } from '../ui/views/EventEffects';
 import { EggView } from '../ui/views/EggView';
+import { FlyView } from '../ui/views/FlyView';
+import { HairView } from '../ui/views/HairView';
 import { HandsView } from '../ui/views/HandsView';
+import { ItemView } from '../ui/views/ItemView';
 import { PanView } from '../ui/views/PanView';
 import { PowerGaugeView } from '../ui/views/PowerGaugeView';
 import { QueueView } from '../ui/views/QueueView';
 import { RobberView } from '../ui/views/RobberView';
 import { ScorePopupView } from '../ui/views/ScorePopupView';
+import { SneezeView } from '../ui/views/SneezeView';
 import { SpiderView } from '../ui/views/SpiderView';
 import { SprinklerView } from '../ui/views/SprinklerView';
 import { StageHudView } from '../ui/views/StageHudView';
@@ -60,6 +65,10 @@ interface EggEntity {
   /** 반토막 등으로 형태 고정 — 익힘/퍼짐 정지, 서빙 가능(대개 저점수) */
   frozen: boolean;
   yolkBroken: boolean;
+  /** 머리카락 안착 감점(−10) 대상 (GDD §8.1 ④) */
+  hairPenalty: boolean;
+  /** 파리 똥 감점(−20) 대상 (GDD §8.1 ⑥) */
+  flyPenalty: boolean;
   outcome: FlipOutcome | null;
   offsetY: number;
   scaleX: number;
@@ -106,6 +115,7 @@ export class GameScene extends Phaser.Scene {
   private heatCoeff = 1;
   private scheduler!: EventScheduler;
   private readonly enemyViews = new Map<EventInstance, EnemyView>();
+  private items: ItemView[] = [];
   private webTrophies: WebTrophyView[] = [];
 
   private steam!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -166,6 +176,7 @@ export class GameScene extends Phaser.Scene {
     this.charging = false;
     this.flipping = false;
     this.enemyViews.clear();
+    this.items = [];
     this.webTrophies = [];
 
     // 스테이지 로드 — ?stage=id 또는 첫 스테이지 (GDD §10)
@@ -186,6 +197,7 @@ export class GameScene extends Phaser.Scene {
       STAGE1.eventSpawnGapMs,
     );
     this.refreshStageUi();
+    this.spawnItems(def);
 
     this.hud = params.get('debug') === '0' ? null : new DebugHud(this);
     // QA/디버그: ?spawn=ninja_spider|back_robber 로 스폰 (?spawnAfter=ms 로 지연 — 계란 준비 후)
@@ -220,6 +232,8 @@ export class GameScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.input.off(Phaser.Input.Events.POINTER_DOWN, this.onDown, this);
       this.input.off(Phaser.Input.Events.POINTER_UP, this.onUp, this);
+      for (const it of this.items) it.destroy();
+      this.items = [];
       this.hud?.destroy();
       this.hud = null;
     });
@@ -232,6 +246,39 @@ export class GameScene extends Phaser.Scene {
       this.session.servedScores.length,
       this.session.averageScore,
     );
+  }
+
+  /** 스테이지 데이터의 아이템을 벽/선반에 배치 (GDD §9) — 탭 시 onItemTap */
+  private spawnItems(def: StageDef): void {
+    for (const it of def.items ?? []) {
+      const pos = ITEM_POS[it.pos];
+      if (!pos || !ITEMS[it.id]) continue;
+      this.items.push(
+        new ItemView(this, it.id, pos.x * DESIGN.width, pos.y * DESIGN.height, (id) =>
+          this.onItemTap(id),
+        ),
+      );
+    }
+  }
+
+  /** 아이템 탭 라우팅 — 정답 아이템은 활성 이벤트 해소, decoy는 개그(무해, GDD §9 미스리드) */
+  private onItemTap(id: string): void {
+    if (this.flipping || this.ended) return;
+    const def = ITEMS[id];
+    if (!def) return;
+    if (def.correctFor === null) {
+      this.playItemGag(id); // decoy — 손잡이 빠지는 등 개그, 페널티 없음
+      return;
+    }
+    // 아이템 입력 키 = 아이템 id (lid·torch·fencing_sword)
+    const hit = this.scheduler.tryInput(id as InputKey);
+    if (hit) this.resolveEvent(hit, 'success');
+  }
+
+  /** decoy 개그 — 방패 탭 시 손잡이가 툭 떨어지는 헛수고 연출 (GDD §9) */
+  private playItemGag(id: string): void {
+    const view = this.items.find((v) => v.id === id);
+    if (view) view.gag();
   }
 
   private liveEggs(): EggEntity[] {
@@ -294,6 +341,12 @@ export class GameScene extends Phaser.Scene {
     if (windowInput === 'double_tap' && heldMs < TAP_MAX_MS && drag < DRAG_CUT_PX) {
       return;
     }
+    // 파리 window — 탭으로 격추 (착지 후 똥 전조). 미스여도 탭 소비(깨기로 안 샘)
+    if (windowInput === 'tap' && heldMs < TAP_MAX_MS && drag < DRAG_CUT_PX) {
+      const hit = this.scheduler.tryInput('tap');
+      if (hit) this.resolveEvent(hit, 'success');
+      return;
+    }
 
     const hasFlipped = this.eggs.some((e) => e.flipped && !e.lost);
     if (drag >= SERVE_SWIPE_PX && dy < 0 && hasFlipped) {
@@ -327,6 +380,8 @@ export class GameScene extends Phaser.Scene {
       lost: false,
       frozen: false,
       yolkBroken: false,
+      hairPenalty: false,
+      flyPenalty: false,
       outcome: null,
       offsetY: 0,
       scaleX: 1,
@@ -421,6 +476,8 @@ export class GameScene extends Phaser.Scene {
     for (const e of ready) {
       let score = scoreFromQ(circularity(getPolygon(e.blob)));
       if (e.yolkBroken) score = Math.max(0, score + SCORE.deduction.yolkBurst);
+      if (e.hairPenalty) score = Math.max(0, score + SCORE.deduction.hair);
+      if (e.flyPenalty) score = Math.max(0, score + SCORE.deduction.flyPoop);
       scores.push(score);
       this.scorePopup.popup(e.blob.cx, e.blob.cy - 40, score);
       e.view.destroy();
@@ -444,6 +501,12 @@ export class GameScene extends Phaser.Scene {
         return new SpiderView(this);
       case 'back_robber':
         return new RobberView(this);
+      case 'sneeze_troll':
+        return new SneezeView(this);
+      case 'hair_troll':
+        return new HairView(this);
+      case 'fly':
+        return new FlyView(this);
       default:
         return null; // 핸들러 없는 적(더미)은 뷰 없음
     }
@@ -480,6 +543,31 @@ export class GameScene extends Phaser.Scene {
       case 'fx_cat_chase':
         new CatView(this);
         break;
+      case 'game_over_sneeze':
+        // 재채기 침이 팬에 → 즉시 게임 오버 (GDD §8.1 ③, DECISION-01)
+        this.triggerSneezeFail();
+        break;
+      case 'hair_land': {
+        // 머리카락 안착 → 대상 계란 −10 (GDD §8.1 ④, DECISION-02)
+        const target = this.liveEggs().find((e) => !e.hairPenalty) ?? this.liveEggs()[0];
+        if (target) target.hairPenalty = true;
+        break;
+      }
+      case 'fly_poop': {
+        // 파리 똥 투하 → 대상 계란 −20 (GDD §8.1 ⑥)
+        const target = this.liveEggs().find((e) => !e.flyPenalty) ?? this.liveEggs()[0];
+        if (target) target.flyPenalty = true;
+        break;
+      }
+      case 'fx_lid_block':
+        this.cameras.main.flash(120, 200, 220, 255); // 뚜껑 챙 — 막음
+        break;
+      case 'fx_torch_burn':
+        this.sparks.emitParticleAt(DESIGN.width * 0.5, DESIGN.height * 0.42, 8);
+        break;
+      case 'fx_star_kill':
+        this.sparks.emitParticleAt(DESIGN.width * 0.5, DESIGN.height * 0.5, 10);
+        break;
       // sfx_*, actor_escape, fx_placeholder → 무음 스텁 / playResolve가 처리
       default:
         break;
@@ -494,6 +582,16 @@ export class GameScene extends Phaser.Scene {
     new SprinklerView(this);
     this.cameras.main.flash(220, 150, 190, 255);
     this.time.delayedCall(1200, () => this.endStage());
+  }
+
+  /** 재채기 미차단 → 침이 팬에 → 즉시 게임 오버 (GDD §8.1 ③, DECISION-01) */
+  private triggerSneezeFail(): void {
+    if (this.ended || this.smokeFailing) return;
+    this.smokeFailing = true;
+    this.session.forceFail('sneeze');
+    this.cameras.main.shake(200, 0.016);
+    this.cameras.main.flash(240, 180, 210, 255);
+    this.time.delayedCall(900, () => this.endStage());
   }
 
   private checkStatus(): void {
@@ -579,6 +677,12 @@ export class GameScene extends Phaser.Scene {
       for (const inst of spawned) this.handleSpawn(inst);
       for (const inst of resolved) this.resolveEvent(inst, 'fail');
       for (const inst of this.scheduler.active) this.enemyViews.get(inst)?.update(inst);
+    }
+    // 아이템 — 매칭 적이 window면 힌트 진동
+    const wantItem = this.activeWindowInput();
+    for (const it of this.items) {
+      it.setHint(it.id === wantItem);
+      it.update(deltaMs);
     }
     for (const web of this.webTrophies) web.redraw(this.time.now);
 

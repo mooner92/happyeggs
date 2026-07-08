@@ -17,6 +17,8 @@ export interface StageDef {
   readonly eventBudget: number;
   /** 평균 점수 기준 별 1~3 임계 (오름차순) */
   readonly starThresholds: readonly [number, number, number];
+  /** 주방에 배치된 아이템 (GDD §9) — id는 data/items의 키, pos는 ITEM_POS 키 (M4) */
+  readonly items?: readonly { readonly id: string; readonly pos: string }[];
 }
 
 /** 스테이지 정의 검증 — 문제가 있으면 사유 문자열, 정상이면 null */
