@@ -76,6 +76,8 @@ export const DEPTH = {
   egg: 0,
   hand: 2,
   queue: 5,
+  enemy: 40,
+  effect: 45,
   gauge: 900,
   popup: 950,
   hud: 1000,
@@ -121,3 +123,29 @@ export const BUBBLE = { w: 130, h: 74, abovePx: 118, eggIconR: 13, eggGapPx: 34 
 
 /** 스테이지 HUD — 재고(상단 중앙)·서빙 평균 */
 export const STAGE_HUD = { yRatio: 0.045, eggIconR: 15, gapPx: 34, xRatio: 0.5 } as const;
+
+/** 닌자 거미 — 천장에서 팬 위로 하강 (GDD §8.1 ①) */
+export const SPIDER = {
+  hangXRatio: 0.5,
+  telegraphYRatio: 0.3, // 전조: 여기까지 내려온다
+  windowYRatio: 0.46, // 윈도우: 팬 바로 위에서 위협
+  bodyR: 34,
+  legLen: 30,
+} as const;
+
+/** 뒷문 강도 — 화면 우측 뒷문에서 진입 (GDD §8.1 ②) */
+export const ROBBER = {
+  edgeXRatio: 0.94,
+  targetXRatio: 0.66,
+  yRatio: 0.4,
+  bodyW: 96,
+  bodyH: 128,
+} as const;
+
+/** 이벤트 전조 바 (적 위) */
+export const EVENT_BAR = { w: 110, h: 12, abovePx: 54 } as const;
+
+/** 드래그(거미줄 절단) 최소 이동 px */
+export const DRAG_CUT_PX = 70;
+/** 더블탭 판정 최대 간격 ms */
+export const DOUBLE_TAP_MS = 260;

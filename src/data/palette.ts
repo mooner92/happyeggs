@@ -74,6 +74,28 @@ export const BUBBLE_STYLE = { fill: 0xf7f1e5, edge: 0x2b2117 } as const;
 /** 스테이지 HUD 텍스트 색 */
 export const STAGE_HUD_TEXT = { normal: '#f2e9dc', low: '#ff8c55' } as const;
 
+/** 방해꾼 — 닌자 거미 */
+export const SPIDER_STYLE = {
+  body: 0x2b2b33,
+  bodyEdge: 0x14141a,
+  leg: 0x1a1a1f,
+  thread: 0xd8d8e0,
+  knife: 0xb9bcc2,
+  eye: 0xff5544,
+} as const;
+
+/** 방해꾼 — 뒷문 강도 + 고양이 */
+export const ROBBER_STYLE = {
+  body: 0x3a3550,
+  hood: 0x272340,
+  eye: 0xf2e9dc,
+  bag: 0x6b5a3a,
+} as const;
+export const CAT_STYLE = { body: 0x4a4a52, ear: 0x2f2f37, eye: 0x9be564 } as const;
+
+/** 전조(위험) 표시 색 */
+export const TELEGRAPH_STYLE = { warn: 0xff5544, web: 0xc9c9d4 } as const;
+
 /** 숫자 색 → CSS 문자열 (Phaser Text 스타일용) */
 export function css(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;

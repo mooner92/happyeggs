@@ -101,7 +101,15 @@ export const STAGE1 = {
   orderMax: 2,
   /** 여유분 — eggStock = 주문 총합 + spareEggs (GDD §6.5) */
   spareEggs: 3,
+  /** 스테이지 번호 — 적 stageUnlock 필터용 */
+  stageNumber: 1,
+  /** M2 방해꾼 이벤트 (GDD §8) */
+  eventBudget: 3,
+  eventSpawnGapMs: [2500, 5000] as [number, number],
+  eventMaxConcurrent: 1,
 } as const;
+
+/** 감점: 노른자 파손 등은 SCORE.deduction (위) 참조 */
 
 /** M0 디버그·방어 상수 */
 export const DEBUG = {
