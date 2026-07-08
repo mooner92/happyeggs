@@ -3,6 +3,7 @@
 import { CustomerQueue, type Order } from './orders';
 import { Inventory, isDeadlocked } from './inventory';
 import { stageAverage } from './scoring';
+import type { StageDef } from './stageDef';
 
 export type StageStatus = 'PLAYING' | 'CLEARED' | 'FAILED';
 export type FailReason = 'deadlock' | 'smoke' | null;
@@ -13,10 +14,26 @@ export class StageSession {
   private readonly served: number[] = [];
   private forcedFail: FailReason = null;
   private failedCustomers = 0;
+  /** 스테이지 정의 (fromDef로 생성 시) — 열원·적 풀·이벤트 예산·별점 임계 */
+  readonly def: StageDef | null;
 
-  constructor(orders: readonly Order[], visibleCount: number, eggStock: number) {
+  constructor(orders: readonly Order[], visibleCount: number, eggStock: number, def: StageDef | null = null) {
     this.queue = new CustomerQueue(orders, visibleCount);
     this.inventory = new Inventory(eggStock);
+    this.def = def;
+  }
+
+  /** JSON 스테이지 정의로 생성 — 주문은 시드로 결정론 생성 (GDD §10) */
+  static fromDef(
+    def: StageDef,
+    visibleCount: number,
+    randomInt: (min: number, max: number) => number,
+  ): StageSession {
+    const [omin, omax] = def.orderRange;
+    const orders: Order[] = Array.from({ length: def.customers }, () => ({
+      eggCount: randomInt(omin, omax),
+    }));
+    return new StageSession(orders, visibleCount, def.eggStock, def);
   }
 
   /** 하드코딩 스테이지 팩토리 — 주문 랜덤 생성은 시드 주입(결정론) */

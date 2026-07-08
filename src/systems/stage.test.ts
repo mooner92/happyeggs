@@ -68,3 +68,35 @@ describe('StageSession', () => {
     expect(s.currentOrder?.eggCount).toBe(2);
   });
 });
+
+describe('StageSession.fromDef (GDD §10)', () => {
+  it('eggStock=def.eggStock, 주문 def.customers개·범위 내, getter 반영', () => {
+    const def = {
+      id: 'stage_t',
+      background: 'kitchen_day',
+      heatSource: 'brazier' as const,
+      customers: 4,
+      orderRange: [1, 2] as [number, number],
+      panCapacity: 2,
+      eggStock: 11,
+      enemyPool: ['ninja_spider'],
+      eventBudget: 3,
+      starThresholds: [80, 90, 96] as [number, number, number],
+    };
+    let s = 7;
+    const rnd = (min: number, max: number) => {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return min + (s % (max - min + 1));
+    };
+    const sess = StageSession.fromDef(def, 4, rnd);
+    expect(sess.remainingStock).toBe(11);
+    expect(sess.customersLeft).toBe(4);
+    expect(sess.def?.heatSource).toBe('brazier');
+    expect(sess.def?.enemyPool).toEqual(['ninja_spider']);
+    // 모든 주문이 orderRange 내
+    for (const o of sess.visibleOrders) {
+      expect(o.eggCount).toBeGreaterThanOrEqual(1);
+      expect(o.eggCount).toBeLessThanOrEqual(2);
+    }
+  });
+});
