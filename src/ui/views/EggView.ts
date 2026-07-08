@@ -9,6 +9,13 @@ const EDGE_WIDTH = 3;
 /** 노른자 외곽선 두께 (표현 값) */
 const YOLK_EDGE_WIDTH = 2;
 
+/** 뒤집기 애니용 렌더 변형 — 블롭 중심 기준 offsetY(포물선)·scaleX(접힘/스쿼시) */
+export interface EggTransform {
+  readonly offsetY: number;
+  readonly scaleX: number;
+}
+const IDENTITY: EggTransform = { offsetY: 0, scaleX: 1 };
+
 /**
  * 계란 1개의 렌더 — 블롭 폴리곤 + 노른자 원.
  * per-frame 할당 0: Point 배열을 생성자에서 1회 할당하고 draw에서는 x/y만 mutate한다 (GDD §2).
@@ -23,13 +30,17 @@ export class EggView {
     this.points = Array.from({ length: vertexCount }, () => new Phaser.Geom.Point());
   }
 
-  draw(blob: BlobState, style: EggStyle): void {
-    // 팬과 같은 3/4 원근 — 블롭 중심 기준으로 y를 눌러 팬 위에 눕게 한다
+  draw(blob: BlobState, style: EggStyle, transform: EggTransform = IDENTITY): void {
+    // 팬과 같은 3/4 원근 — 블롭 중심 기준으로 y를 눌러 팬 위에 눕게 한다.
+    // 뒤집기 변형: 중심 기준 x를 scaleX로 접고, 전체를 offsetY만큼 띄운다.
     const sq = PERSPECTIVE.squashY;
+    const cx = blob.cx;
     const cy = blob.cy;
+    const { offsetY, scaleX } = transform;
     for (let i = 0; i < this.points.length; i++) {
-      const py = cy + (blob.verts[i * 2 + 1]! - cy) * sq;
-      this.points[i]!.setTo(blob.verts[i * 2]!, py);
+      const px = cx + (blob.verts[i * 2]! - cx) * scaleX;
+      const py = cy + (blob.verts[i * 2 + 1]! - cy) * sq + offsetY;
+      this.points[i]!.setTo(px, py);
     }
     const g = this.g;
     g.clear();
@@ -38,12 +49,13 @@ export class EggView {
     g.fillPoints(this.points, true);
     g.lineStyle(EDGE_WIDTH, style.edge, style.edgeAlpha);
     g.strokePoints(this.points, true, true);
-    // 노른자 — 흰자보다 살짝 불투명하게, 같은 원근으로 눌린 타원
-    const yolkY = cy + (blob.yolk.y - cy) * sq;
+    // 노른자 — 흰자보다 살짝 불투명하게, 같은 원근·변형으로 눌린 타원
+    const yolkX = cx + (blob.yolk.x - cx) * scaleX;
+    const yolkY = cy + (blob.yolk.y - cy) * sq + offsetY;
     g.fillStyle(YOLK_STYLE.fill, Math.min(1, style.alpha + 0.25));
-    g.fillEllipse(blob.yolk.x, yolkY, blob.yolk.r * 2, blob.yolk.r * 2 * sq);
+    g.fillEllipse(yolkX, yolkY, blob.yolk.r * 2 * scaleX, blob.yolk.r * 2 * sq);
     g.lineStyle(YOLK_EDGE_WIDTH, YOLK_STYLE.edge, style.alpha);
-    g.strokeEllipse(blob.yolk.x, yolkY, blob.yolk.r * 2, blob.yolk.r * 2 * sq);
+    g.strokeEllipse(yolkX, yolkY, blob.yolk.r * 2 * scaleX, blob.yolk.r * 2 * sq);
   }
 
   destroy(): void {

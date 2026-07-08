@@ -48,6 +48,18 @@ export const COUNTER_STYLE = { front: 0x332f2a, lip: 0x45403a } as const;
 /** 디버그 HUD 텍스트 색 (CSS 색 문자열 — Phaser Text 스타일용) */
 export const HUD_TEXT = { normal: '#9be564', warning: '#ff5544' } as const;
 
+/** 파워 게이지 — 트랙/채움/스윗스팟/마커 */
+export const GAUGE_STYLE = {
+  track: 0x211d18,
+  trackEdge: 0x000000,
+  fill: 0xf5b63f,
+  sweetspot: 0x9be564,
+  marker: 0xfffaf0,
+} as const;
+
+/** 점수 팝업 텍스트 색 */
+export const SCORE_TEXT = { good: '#9be564', normal: '#f2e9dc', bad: '#ff8c55' } as const;
+
 /** 숫자 색 → CSS 문자열 (Phaser Text 스타일용) */
 export function css(color: number): string {
   return `#${color.toString(16).padStart(6, '0')}`;

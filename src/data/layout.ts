@@ -69,11 +69,39 @@ export const COUNTER_BAND = {
   lipPx: 12, // 윗면 하이라이트 두께
 } as const;
 
-/** 렌더 깊이 — 카운터(뒤) < 팬 < 계란 < 손(앞) < HUD */
+/** 렌더 깊이 — 카운터(뒤) < 팬 < 계란 < 손(앞) < 게이지/HUD */
 export const DEPTH = {
   counter: -3,
   pan: -2,
   egg: 0,
   hand: 2,
+  gauge: 900,
+  popup: 950,
   hud: 1000,
 } as const;
+
+/** 파워 게이지 바 (세로) — 팬 우측, 값 0(아래)→1(위) */
+export const GAUGE_BAR = {
+  xRatio: 0.9,
+  yTopRatio: 0.3,
+  yBottomRatio: 0.6,
+  widthPx: 34,
+} as const;
+
+/** 뒤집기 애니 (트윈 절차 애니) */
+export const FLIP_ANIM = {
+  /** 포물선 최고점 높이 px */
+  peakPx: 170,
+  /** 한 번 뒤집는 시간 ms */
+  durationMs: 520,
+  /** 반접힘 시 가로 압축 배율 */
+  foldScaleX: 0.42,
+  /** 착지 스쿼시 배율·시간 */
+  squashScaleX: 1.18,
+  squashMs: 120,
+} as const;
+
+/** 스와이프 서빙 최소 이동 px (위로) */
+export const SERVE_SWIPE_PX = 90;
+/** 탭(깨기)로 판정하는 최대 홀드 ms — 이보다 길게 누르면 뒤집기 게이지 */
+export const TAP_MAX_MS = 180;
