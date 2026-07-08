@@ -1,14 +1,19 @@
 import Phaser from 'phaser';
 import { ANCHORS, DEPTH, HAND_SHAPE, toPx } from '../../data/layout';
 import { HAND_STYLE, SPATULA_STYLE } from '../../data/palette';
+import { addSoftShadow } from '../textures';
 
-/** 1인칭 양손 placeholder — 왼손(팬 손잡이 쪽) + 오른손(뒤집개). M0는 정적 도형. */
+/** 1인칭 양손 placeholder — 왼손(팬 손잡이 쪽) + 오른손(뒤집개). 접지 그림자로 입체감. */
 export class HandsView {
   constructor(scene: Phaser.Scene) {
-    const g = scene.add.graphics().setDepth(DEPTH.hand);
     const left = toPx(ANCHORS.handLeft);
     const right = toPx(ANCHORS.handRight);
     const pan = toPx(ANCHORS.pan);
+    // 손 접지 그림자
+    for (const p of [left, right]) {
+      addSoftShadow(scene, p.x, p.y + HAND_SHAPE.h * 0.45, HAND_SHAPE.w * 1.6, HAND_SHAPE.h, DEPTH.hand - 1, 0.4);
+    }
+    const g = scene.add.graphics().setDepth(DEPTH.hand);
 
     // 오른손 뒤집개 — 손에서 팬 쪽으로 뻗는 손잡이(나무색) + 밝은 금속 날
     const bladeX = right.x + (pan.x - right.x) * HAND_SHAPE.spatulaReach;

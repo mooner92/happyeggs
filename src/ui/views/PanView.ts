@@ -9,10 +9,11 @@ import {
   toPx,
 } from '../../data/layout';
 import { PALETTE } from '../../data/palette';
+import { addSoftShadow } from '../textures';
 
 /**
- * 팬 placeholder — 3/4 원근(세로 압축 타원) + 옆벽 깊이 + 왼손 방향 손잡이.
- * 위에서 정면으로 내려다보지 않고 살짝 누운 느낌을 준다 (Bacon 톤). 크랙 유효 영역 판정 제공.
+ * 팬 — 3/4 원근(세로 압축 타원) + 옆벽 깊이 + 접지 그림자 + 조리면 광택 + 왼손 손잡이.
+ * 위에서 정면으로 내려다보지 않고 살짝 누운 느낌 (Bacon 톤). 크랙 유효 영역 판정 제공.
  */
 export class PanView {
   readonly center: { x: number; y: number };
@@ -28,6 +29,9 @@ export class PanView {
     const wall = PERSPECTIVE.panWallPx;
     const rimRx = this.radius * PAN_SHAPE.rim;
     const rimRy = this.ry * PAN_SHAPE.rim;
+
+    // 접지 그림자 — 팬 아래 바닥에 부드럽게 (팬보다 뒤)
+    addSoftShadow(scene, cx, cy + this.ry * 0.9, rimRx * 2.5, rimRy * 1.7, DEPTH.pan - 1, 0.45);
 
     const g = scene.add.graphics().setDepth(DEPTH.pan);
 
@@ -49,6 +53,16 @@ export class PanView {
     // 조리면
     g.fillStyle(PALETTE.pan, 1);
     g.fillEllipse(cx, cy, this.radius * 2, this.ry * 2);
+    // 조리면 안쪽 미묘한 명암(가장자리 살짝 밝게)
+    g.lineStyle(6, PALETTE.panSheen, 0.35);
+    g.strokeEllipse(cx, cy, this.radius * 1.82, this.ry * 1.82);
+
+    // 조리면 광택 — 왼쪽 위에서 오는 빛 (soft-glow 스프라이트)
+    scene.add
+      .image(cx - this.radius * 0.28, cy - this.ry * 0.42, 'soft-glow')
+      .setDisplaySize(this.radius * 1.5, this.ry * 1.1)
+      .setAlpha(0.12)
+      .setDepth(DEPTH.pan);
   }
 
   /** (x, y)가 팬 조리면 안인가 — 타원 판정, margin만큼 안쪽으로 좁힌다 */

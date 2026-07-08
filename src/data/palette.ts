@@ -8,14 +8,18 @@
  */
 export type CookStateKey = 'RAW' | 'SET' | 'PERFECT_WINDOW' | 'OVERDONE' | 'BURNT' | 'SMOKE';
 
-/** 기본 5색 팔레트 */
+/** 기본 팔레트 — 따뜻한 주방 톤 (Bacon 레퍼런스) */
 export const PALETTE = {
-  bg: 0x2b2b2b,
-  pan: 0x3a3a3a,
-  panRim: 0x141414,
-  white: 0xf2e9dc,
+  bg: 0x24201d,
+  pan: 0x40403f,
+  panSheen: 0x5a5a58,
+  panRim: 0x121110,
+  white: 0xf6efe2,
   yolk: 0xf5b63f,
 } as const;
+
+/** 배경 벽 그라데이션(위→아래) */
+export const WALL_GRADIENT = { top: 0x2c2622, bottom: 0x1c1815 } as const;
 
 export interface EggStyle {
   readonly fill: number;
@@ -34,7 +38,9 @@ export const COOK_STATE_STYLE: Readonly<Record<CookStateKey, EggStyle>> = {
   SMOKE: { fill: 0x3a2e20, alpha: 1.0, edge: 0x14100a, edgeAlpha: 1.0 },
 };
 
-export const YOLK_STYLE = { fill: 0xf5b63f, edge: 0xd9902a } as const;
+export const YOLK_STYLE = { fill: 0xf5b63f, edge: 0xd9902a, highlight: 0xfff0c2 } as const;
+/** 흰자 광택(글로시 하이라이트) 색 */
+export const EGG_GLOSS = 0xfffdf6;
 
 /** 손 placeholder 색 */
 export const HAND_STYLE = { fill: 0xf5b63f, line: 0xd9902a } as const;
@@ -42,8 +48,8 @@ export const HAND_STYLE = { fill: 0xf5b63f, line: 0xd9902a } as const;
 /** 뒤집개(스패출러) — 팬/배경보다 밝은 금속색으로 손에 든 도구임을 읽히게 (GDD §4 1인칭 양손) */
 export const SPATULA_STYLE = { blade: 0xb9bcc2, bladeEdge: 0x6b6e74, handle: 0x9a7b4a } as const;
 
-/** 주방 카운터 placeholder — 팬이 허공에 뜨지 않도록 바닥을 준다 (GDD §4 [주방 카운터]) */
-export const COUNTER_STYLE = { front: 0x332f2a, lip: 0x45403a } as const;
+/** 주방 카운터 — 따뜻한 나무 톤 (GDD §4 [주방 카운터]) */
+export const COUNTER_STYLE = { front: 0x3b322a, top: 0x574636, lip: 0x6b573f } as const;
 
 /** 디버그 HUD 텍스트 색 (CSS 색 문자열 — Phaser Text 스타일용) */
 export const HUD_TEXT = { normal: '#9be564', warning: '#ff5544' } as const;

@@ -3,6 +3,7 @@ import { DEBUG, EGG, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
 import { ENEMIES } from '../data/enemies';
 import {
   ANCHORS,
+  DEPTH,
   DESIGN,
   DOUBLE_TAP_MS,
   DRAG_CUT_PX,
@@ -100,6 +101,10 @@ export class GameScene extends Phaser.Scene {
   private readonly enemyViews = new Map<EventInstance, EnemyView>();
   private webTrophies: WebTrophyView[] = [];
 
+  private steam!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private steamAccMs = 0;
+
   private eggs: EggEntity[] = [];
   private nextEggId = 0;
   private ended = false;
@@ -124,6 +129,28 @@ export class GameScene extends Phaser.Scene {
     this.scorePopup = new ScorePopupView(this);
     this.queueView = new QueueView(this);
     this.stageHud = new StageHudView(this);
+
+    // 주스: 지글지글 스팀 + 크랙 파티클 (수동 방출)
+    this.steam = this.add
+      .particles(0, 0, 'steam', {
+        lifespan: 1000,
+        speedY: { min: -70, max: -40 },
+        speedX: { min: -14, max: 14 },
+        scale: { start: 0.42, end: 1.15 },
+        alpha: { start: 0.4, end: 0 },
+        emitting: false,
+      })
+      .setDepth(DEPTH.egg + 1);
+    this.sparks = this.add
+      .particles(0, 0, 'spark', {
+        lifespan: 520,
+        speed: { min: 70, max: 180 },
+        scale: { start: 0.6, end: 0 },
+        alpha: { start: 0.95, end: 0 },
+        gravityY: 440,
+        emitting: false,
+      })
+      .setDepth(DEPTH.egg + 2);
 
     this.eggs = [];
     this.nextEggId = 0;
@@ -297,6 +324,7 @@ export class GameScene extends Phaser.Scene {
       scaleX: 1,
     });
     bus.emit('egg:cracked', { eggId: id, x, y });
+    this.sparks.emitParticleAt(x, y, 7); // 크랙 팝
     this.refreshStageUi();
     this.checkStatus();
   }
@@ -429,6 +457,7 @@ export class GameScene extends Phaser.Scene {
         if (target) {
           bisectBlob(target.blob);
           target.frozen = true; // stepSpread가 반토막을 덮어쓰지 않게 고정
+          this.cameras.main.shake(180, 0.012); // 반토막 임팩트
         }
         break;
       }
@@ -467,6 +496,8 @@ export class GameScene extends Phaser.Scene {
 
   override update(_time: number, deltaMs: number): void {
     const dtSec = Math.min(deltaMs / 1000, DEBUG.MAX_DT_SEC);
+    const emitSteam = (this.steamAccMs += deltaMs) >= 150;
+    if (emitSteam) this.steamAccMs = 0;
 
     for (const egg of this.eggs) {
       if (!egg.flipped && !egg.lost && !egg.frozen && !this.flipping) {
@@ -491,6 +522,17 @@ export class GameScene extends Phaser.Scene {
         { offsetY: egg.offsetY, scaleX: egg.scaleX },
         egg.yolkBroken,
       );
+      // 지글지글 스팀 — 익는 중(SET~OVERDONE)일 때 위로 피어오른다
+      if (emitSteam && !egg.flipped && !egg.lost && !egg.frozen) {
+        const s = egg.cooking.state;
+        if (s === 'SET' || s === 'PERFECT_WINDOW' || s === 'OVERDONE') {
+          this.steam.emitParticleAt(
+            egg.blob.cx + (Math.sin(egg.id * 2.3 + this.time.now / 300) * egg.blob.baseRadius) / 2,
+            egg.blob.cy - egg.blob.baseRadius * 0.5,
+            1,
+          );
+        }
+      }
     }
 
     // 방해꾼 이벤트 — 조리 중에만 스폰

@@ -44,6 +44,9 @@ export class QueueView {
     const w = QUEUE.bodyW * scale;
     const h = QUEUE.bodyH * scale;
     const color = CUSTOMER_STYLE.bodies[index % CUSTOMER_STYLE.bodies.length]!;
+    // 접지 그림자
+    g.fillStyle(0x000000, 0.22);
+    g.fillEllipse(cx, cy + h * 0.5, w * 0.95, h * 0.16);
     // 몸통 (둥근 블롭)
     g.fillStyle(color, 1);
     g.fillEllipse(cx, cy, w, h);
