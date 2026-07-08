@@ -58,7 +58,7 @@ stateDiagram-v2
 | 스펙 | 마일스톤 | 상태 |
 |---|---|---|
 | [M0-skeleton.md](M0-skeleton.md) | M0 — 뼈대 | **Approved** (2026-07-07 승인 — 구현 진행) |
-| M1-core-loop.md | M1 — 코어 루프 | 미작성 |
+| [M1-core-loop.md](M1-core-loop.md) | M1 — 코어 루프 | **Approved** (2026-07-08 — ADR-0009 연속 개발) |
 | M2-event-framework.md | M2 — 이벤트 프레임워크 | 미작성 |
 | M3-stage-system.md | M3 — 스테이지 시스템 | 미작성 |
 | M4-enemies-items.md | M4 — 적 확장 + 아이템 | 미작성 |
