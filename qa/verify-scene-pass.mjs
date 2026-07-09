@@ -75,6 +75,22 @@ const shot = (page, n) => page.screenshot({ path: `${OUT}/${n}.png` });
   await page.close();
 }
 
+// 7) 드리프트 → 뒤집개 밀기 (ADR-0012) — 흘러 불룩해진 흰자를 탭해 모은다 (Q 회복은 debug HUD)
+{
+  const page = await scene('stage=stage_01&events=off'); // debug HUD 켬 (Q 표시)
+  await page.mouse.click(PAN.x, PAN.y); // 깨기
+  await sleep(4200); // 드리프트 누적 — 불룩 + 밀기 힌트
+  await shot(page, '07-drift-bulge-hint');
+  // 가장자리 4방향 탭탭 — 불룩 제거 (계란 근처 탭 = 밀기 라우팅)
+  for (const [dx, dy] of [[70, 0], [-70, 0], [0, 55], [0, -55], [70, 0], [-70, 0]]) {
+    await page.mouse.click(PAN.x + dx, PAN.y + dy);
+    await sleep(140);
+  }
+  await sleep(400);
+  await shot(page, '08-after-push-rounder');
+  await page.close();
+}
+
 await browser.close();
 console.log(JSON.stringify({ consoleErrors: errors }, null, 2));
 if (errors.length) process.exitCode = 1;

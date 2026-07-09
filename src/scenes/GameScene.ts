@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEBUG, EGG, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
+import { DEBUG, EGG, FLOW, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
 import { ENEMIES } from '../data/enemies';
 import { ITEMS, ITEM_POS } from '../data/items';
 import {
@@ -19,7 +19,14 @@ import {
 import { COOK_STATE_STYLE, HUD_TEXT, PALETTE } from '../data/palette';
 import { CookingModel } from '../systems/CookingModel';
 import type { BlobState } from '../systems/EggBlobModel';
-import { createBlob, getPolygon, stepSpread } from '../systems/EggBlobModel';
+import {
+  bulgePoint,
+  createBlob,
+  getPolygon,
+  pushBlob,
+  stepDrift,
+  stepSpread,
+} from '../systems/EggBlobModel';
 import type { InputKey } from '../systems/enemyDef';
 import type { EventInstance } from '../systems/eventInstance';
 import { EventScheduler, type RangeRng } from '../systems/eventScheduler';
@@ -124,6 +131,7 @@ export class GameScene extends Phaser.Scene {
   private crackedOnce = false;
   private flippedOnce = false;
   private servedOnce = false;
+  private pushedOnce = false;
   /** 코인 경제 (ADR-0011) — 지갑(저장 로드) + 이번 스테이지 벌이 */
   private walletCoins = 0;
   private earnedCoins = 0;
@@ -206,6 +214,7 @@ export class GameScene extends Phaser.Scene {
     this.crackedOnce = false;
     this.flippedOnce = false;
     this.servedOnce = false;
+    this.pushedOnce = false;
     this.earnedCoins = 0;
     try {
       this.walletCoins = loadSave(window.localStorage as unknown as KVStorage).coins;
@@ -235,7 +244,13 @@ export class GameScene extends Phaser.Scene {
     this.refreshStageUi();
     this.spawnItems(def);
 
-    this.hud = params.get('debug') === '0' ? null : new DebugHud(this);
+    this.hud =
+      params.get('debug') === '0'
+        ? null
+        : new DebugHud(this, (id) => {
+            const e = this.eggs.find((x) => x.id === id);
+            return e && !e.lost ? circularity(getPolygon(e.blob)) : undefined;
+          });
     // QA/디버그: ?spawn=ninja_spider|back_robber 로 스폰 (?spawnAfter=ms 로 지연 — 계란 준비 후)
     const forced = params.get('spawn');
     if (forced) {
@@ -396,9 +411,29 @@ export class GameScene extends Phaser.Scene {
       this.startFlip(this.powerGauge.valueAt(heldMs / 1000));
       return;
     }
-    if (heldMs < TAP_MAX_MS && this.pan.containsPoint(pointer.x, pointer.y, EGG.INITIAL_RADIUS)) {
-      this.crack(pointer.x, pointer.y);
+    if (heldMs < TAP_MAX_MS) {
+      // 흐른 흰자 모으기 우선 (ADR-0012) — 계란 근처 탭이면 밀기, 빈 팬 탭이면 깨기
+      if (this.tryPush(pointer.x, pointer.y)) return;
+      if (this.pan.containsPoint(pointer.x, pointer.y, EGG.INITIAL_RADIUS)) {
+        this.crack(pointer.x, pointer.y);
+      }
     }
+  }
+
+  /** 뒤집개 밀기 (ADR-0012) — 조리 중인 계란의 가장자리 근처 탭이면 흰자를 중심으로 민다 */
+  private tryPush(x: number, y: number): boolean {
+    for (const e of this.eggs) {
+      if (e.flipped || e.lost || e.frozen) continue;
+      const d = Math.hypot(x - e.blob.cx, y - e.blob.cy);
+      if (d > e.blob.baseRadius + FLOW.maxOutPx + 26) continue;
+      if (pushBlob(e.blob, x, y) > 0) {
+        this.pushedOnce = true;
+        this.hands.poke(x, y);
+        this.steam.emitParticleAt(x, y, 2); // 칙— 눌린 피드백
+        return true;
+      }
+    }
+    return false;
   }
 
   private crack(x: number, y: number): void {
@@ -759,6 +794,7 @@ export class GameScene extends Phaser.Scene {
     for (const egg of this.eggs) {
       if (!egg.flipped && !egg.lost && !egg.frozen && !this.flipping) {
         stepSpread(egg.blob, dtSec);
+        stepDrift(egg.blob, dtSec); // 흰자가 한쪽으로 흐른다 — 밀어서 모아야 함 (ADR-0012)
         const before = egg.cooking.state;
         const transitions = egg.cooking.update(dtSec, this.heatCoeff);
         let from = before;
@@ -814,8 +850,17 @@ export class GameScene extends Phaser.Scene {
     // 무자막 동사 힌트 — 각 조작 첫 성공까지만 (탭→홀드→스와이프 순서로 자연 유도)
     if (!this.ended && !this.flipping && !this.charging) {
       const hintY = this.pan.center.y - HINT.abovePanPx;
+      // 밀기 힌트 — 불룩해진 지점 위 (첫 밀기 성공까지)
+      const bulge = this.pushedOnce
+        ? null
+        : this.eggs
+            .filter((e) => !e.flipped && !e.lost && !e.frozen)
+            .map((e) => bulgePoint(e.blob, FLOW.hintBulgePx))
+            .find((b) => b !== null);
       if (!this.crackedOnce && this.liveEggs().length === 0 && this.session.remainingStock > 0) {
         this.hint.show('crack', this.pan.center.x, this.pan.center.y);
+      } else if (bulge) {
+        this.hint.show('push', bulge.x, bulge.y);
       } else if (
         !this.flippedOnce &&
         this.eggs.some(

@@ -9,13 +9,16 @@ import { addSoftShadow } from '../textures';
  */
 export class HandsView {
   private readonly eggG: Phaser.GameObjects.Graphics;
+  private readonly pokeG: Phaser.GameObjects.Graphics;
   private readonly left: { x: number; y: number };
+  private readonly right: { x: number; y: number };
   private held = false;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.left = toPx(ANCHORS.handLeft);
+    this.right = toPx(ANCHORS.handRight);
     const left = this.left;
-    const right = toPx(ANCHORS.handRight);
+    const right = this.right;
     const pan = toPx(ANCHORS.pan);
     // 손 접지 그림자
     for (const p of [left, right]) {
@@ -23,6 +26,8 @@ export class HandsView {
     }
     // 쥔 계란 — 주먹보다 먼저 생성(같은 depth) → 주먹이 계란 아래를 가려 "쥔" 모양
     this.eggG = scene.add.graphics().setDepth(DEPTH.hand);
+    // 밀기 포크 고스트 — 뒤집개 날이 탭 지점으로 갔다 온다 (ADR-0012)
+    this.pokeG = scene.add.graphics().setDepth(DEPTH.hand + 1).setAlpha(0);
 
     const g = scene.add.graphics().setDepth(DEPTH.hand);
 
@@ -46,6 +51,31 @@ export class HandsView {
       g.lineStyle(HAND_SHAPE.outline, HAND_STYLE.line, 1);
       g.strokeEllipse(p.x, p.y, HAND_SHAPE.w, HAND_SHAPE.h);
     }
+  }
+
+  /** 뒤집개 포크 — 날 고스트가 오른손→탭 지점으로 순간 이동했다 사라진다 (탭당 1회, per-frame 아님) */
+  poke(x: number, y: number): void {
+    const g = this.pokeG;
+    g.clear();
+    // 탭 지점에 날(오른손 방향으로 기울인 라운드 사각) + 손잡이 스텁
+    const angle = Math.atan2(this.right.y - y, this.right.x - x);
+    const w = HAND_SHAPE.bladeW * 0.8;
+    const h = HAND_SHAPE.bladeH * 0.8;
+    g.setPosition(0, 0);
+    g.fillStyle(SPATULA_STYLE.blade, 1);
+    g.fillRoundedRect(x - w / 2, y - h / 2, w, h, h / 4);
+    g.lineStyle(HAND_SHAPE.bladeEdge, SPATULA_STYLE.bladeEdge, 1);
+    g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, h / 4);
+    g.lineStyle(HAND_SHAPE.spatulaW * 0.7, SPATULA_STYLE.handle, 1);
+    g.lineBetween(
+      x + Math.cos(angle) * w * 0.5,
+      y + Math.sin(angle) * h * 0.5,
+      x + Math.cos(angle) * w * 1.4,
+      y + Math.sin(angle) * h * 1.4,
+    );
+    g.setAlpha(1);
+    this.scene.tweens.killTweensOf(g);
+    this.scene.tweens.add({ targets: g, alpha: 0, duration: 220, ease: 'Quad.easeIn' });
   }
 
   /** 왼손에 다음 계란 표시 — 재고 있으면 쥐고, 없으면 빈손 */

@@ -2,8 +2,8 @@ import Phaser from 'phaser';
 import { DEPTH, HINT } from '../../data/layout';
 import { HINT_STYLE } from '../../data/palette';
 
-/** 조작 동사 힌트 종류 — 탭(깨기) · 홀드(뒤집기) · 위 스와이프(서빙) */
-export type HintVerb = 'crack' | 'flip' | 'serve';
+/** 조작 동사 힌트 종류 — 탭(깨기) · 홀드(뒤집기) · 위 스와이프(서빙) · 밀기(흰자 모으기) */
+export type HintVerb = 'crack' | 'flip' | 'serve' | 'push';
 
 /**
  * 무자막 조작 힌트 (구체화 패스, Bacon 톤 — 글자 없이 픽토그램만).
@@ -58,6 +58,16 @@ export class HintView {
         g.fillStyle(HINT_STYLE.accent, 0.85);
         g.slice(this.x, this.y, r - 8, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2, false);
         g.fillPath();
+        break;
+      }
+      case 'push': {
+        // 불룩한 흰자 밀기 — 지점에 작은 탭 물결 (accent 색으로 crack과 구분)
+        const phase = (timeMs % 700) / 700;
+        g.fillStyle(HINT_STYLE.accent, 0.95);
+        g.fillCircle(this.x, this.y, 7);
+        const p = phase;
+        g.lineStyle(4, HINT_STYLE.accent, 0.85 * (1 - p));
+        g.strokeCircle(this.x, this.y, 10 + p * r * 1.2);
         break;
       }
       case 'serve': {

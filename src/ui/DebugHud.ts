@@ -24,7 +24,11 @@ export class DebugHud {
   private accMs = 0;
   private lastContent = '';
 
-  constructor(scene: Phaser.Scene) {
+  constructor(
+    scene: Phaser.Scene,
+    /** 계란 id → 현재 원형도 Q (ADR-0012 튜닝/QA) — 250ms 스로틀 안에서만 호출(할당 예산) */
+    private readonly qOf?: (id: number) => number | undefined,
+  ) {
     const origin = toPx(ANCHORS.hudOrigin);
     this.text = scene.add
       .text(origin.x, origin.y, '', {
@@ -50,6 +54,8 @@ export class DebugHud {
     for (const egg of eggs) {
       const c = egg.cooking;
       let line = `#${egg.id} ${c.state} d=${c.doneness.toFixed(2)} p=${c.progressInState.toFixed(2)}`;
+      const q = this.qOf?.(egg.id);
+      if (q !== undefined) line += ` Q=${q.toFixed(3)}`;
       if (c.state === 'SMOKE') line += ` smoke=${c.smokeElapsed.toFixed(1)}s`;
       if (this.smokeCritical.has(egg.id)) {
         line += ' !! SPRINKLER (M3)';

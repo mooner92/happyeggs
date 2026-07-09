@@ -71,6 +71,31 @@ export const EGG: BlobConfig = {
   YOLK_OFFSET_RATIO: 0.18,
 };
 
+/** 흰자 흐름(드리프트) + 뒤집개로 모으기 (GDD §6.1 확장 — DECISION-10/ADR-0012).
+ *  흰자가 한쪽으로 흘러 불룩해지고, 그 가장자리를 탭하면 중심으로 밀려 들어온다. */
+export const FLOW = {
+  /** 드리프트 성장 px/초 (섹터 중심, cos 폴오프) */
+  driftPxPerSec: 18,
+  /** 드리프트 섹터 반각(rad) */
+  driftHalfWidthRad: 0.8,
+  /** 드리프트 방향 1회전 주기(초) — 시드별 위상 오프셋 */
+  driftRotatePeriodSec: 16,
+  /** 정점별 바깥 누적 상한(px) — 방치 시 최대 불룩 */
+  maxOutPx: 44,
+  /** 정점별 안쪽 상한(px) — 과한 밀기 움푹 한계 */
+  maxInPx: 24,
+  /** 뒤집개 밀기 반경(px) */
+  pushRadiusPx: 130,
+  /** 1탭당 불룩(+flow)이 깎이는 비율(0~1, 거리 폴오프 곱) — 비례 감쇠라 크레이터가 안 생긴다 */
+  pushFactor: 0.6,
+  /** 1탭당 0 아래로 패일 수 있는 깊이(px) — 불룩 제거는 빠르게, 움푹은 천천히 */
+  dentPerTapPx: 3,
+  /** flow 이웃 스무딩 계수(스텝당) — 눌린 자국이 자연스럽게 퍼짐 */
+  smooth: 0.12,
+  /** 밀기 힌트 노출 불룩 임계(px) */
+  hintBulgePx: 22,
+} as const;
+
 /** 뒤집기 — 왕복 파워 게이지 + 스윗스팟 판정 윈도우 (GDD §6.3, §0 "판정 윈도우는 balance.ts") */
 export const FLIP = {
   /** 게이지 왕복 1주기(초) — 홀드 시 0→1→0 */
