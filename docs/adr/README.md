@@ -42,6 +42,7 @@ ADR의 핵심 원칙:
 | 0010 | 다이제틱 주방 무대 + 무자막 조작 힌트 | 채택 | [0010-diegetic-kitchen-scene.md](0010-diegetic-kitchen-scene.md) |
 | 0011 | GPGP식 손님 중심 루프 + 코인 경제 | 채택 | [0011-gpgp-customer-loop-and-coins.md](0011-gpgp-customer-loop-and-coins.md) |
 | 0012 | 흰자 드리프트 + 뒤집개로 모으기 (코어 스킬) | 채택 | [0012-drift-and-spatula-herding.md](0012-drift-and-spatula-herding.md) |
+| 0013 | 유머러스 테마 확정 + 캐릭터 킷 (디자인 v3) | 채택 | [0013-humor-theme-charkit.md](0013-humor-theme-charkit.md) |
 
 > [!NOTE]
 > 세 ADR 모두 **이미 확정되어 있던 사항의 기록**이다 — 0001·0002는 [GDD](../../GDD.md) §3(고정, 변경 제안 금지)이, 0003은 2026-07-07 디렉터 지시가 결정 주체이며, [../DECISIONS.md](../DECISIONS.md)의 미결 항목이 승격된 것이 아니다. 미결 항목의 승격분은 0004부터다 — **0004~0008이 M0-1~5의 승격분**(2026-07-07, M0 스펙 승인 시 기본안 일괄 채택)이며, DECISION-01~07은 아직 미결이다.

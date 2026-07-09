@@ -3,12 +3,15 @@ import { ANCHORS, DEPTH, DESIGN, EVENT_BAR, SNIPER, toPx } from '../../data/layo
 import { SNIPER_STYLE, TELEGRAPH_STYLE } from '../../data/palette';
 import type { EventInstance } from '../../systems/eventInstance';
 import type { EnemyView } from './EnemyView';
+import { OUTLINE, darken, drawBody2Tone, drawEye, drawOpenSmile } from './charKit';
 
 /**
  * 저격수 (GDD §8.1 ⑤) — 상단 밖에서 팬을 조준.
  * 전조: 레이저 스윕(조준). 윈도우: 락온 빔(펜싱칼 탭으로 패링/반사).
  * 함정(DECISION-04): 빔을 직접 탭하면 +1 증원(최대 3) → 실패 시 구멍이 더 많이.
  * 성공: 반사(초록). 실패: 빔이 팬으로 꽂혀 후라이에 구멍(씬 처리). 팬은 방탄.
+ * 디자인 v3: 2톤 헤드에 drawEye 외눈 스코프(조준 중엔 두리번, 락온 시 응시,
+ * 패링당하면 눈이 핑 돈다) + 끝에 방울 달린 삐죽 안테나 + 진지함과 안 어울리는 해맑은 입(유머).
  */
 export class SniperView implements EnemyView {
   private readonly g: Phaser.GameObjects.Graphics;
@@ -85,6 +88,7 @@ export class SniperView implements EnemyView {
     const locked = this.phase === 'lock' || this.resolvedColor !== null;
     const beamCol = this.resolvedColor ?? (locked ? SNIPER_STYLE.lock : SNIPER_STYLE.aim);
     const xs = this.headXs();
+    const hr = SNIPER.headR;
     for (const hx of xs) {
       // 조준점(팬) — 스윕 시 좌우로 흔들리다 락온 시 팬 중앙 고정
       const tx =
@@ -112,14 +116,31 @@ export class SniperView implements EnemyView {
           );
         }
       }
-      // 저격수 헤드
-      g.fillStyle(SNIPER_STYLE.body, 1);
-      g.fillCircle(hx, this.headY, SNIPER.headR);
-      g.lineStyle(3, SNIPER_STYLE.bodyEdge, 1);
-      g.strokeCircle(hx, this.headY, SNIPER.headR);
-      // 스코프(초록 렌즈)
-      g.fillStyle(SNIPER_STYLE.scope, locked ? 1 : 0.6);
-      g.fillCircle(hx, this.headY, SNIPER.headR * 0.42);
+      // 삐죽 안테나 — 끝 방울은 락온 시 빨갛게 (헤드 뒤에 먼저 그린다)
+      const ax = hx + hr * 0.3;
+      const ay = this.headY - hr * 1.6;
+      g.lineStyle(4, OUTLINE.color, 1);
+      g.lineBetween(hx + hr * 0.1, this.headY - hr * 0.8, ax, ay);
+      g.fillStyle(locked ? SNIPER_STYLE.lock : SNIPER_STYLE.scope, 1);
+      g.fillCircle(ax, ay, 5);
+      g.lineStyle(3, OUTLINE.color, 1);
+      g.strokeCircle(ax, ay, 5);
+      // 저격수 헤드 — 2톤 + 외곽선
+      drawBody2Tone(g, hx, this.headY, hr * 2, hr * 2, SNIPER_STYLE.body);
+      // 외눈 스코프 — 금속 링 + drawEye(흰자+동공+글린트 렌즈)
+      g.fillStyle(darken(SNIPER_STYLE.body, 0.6), 1);
+      g.fillCircle(hx, this.headY, hr * 0.62);
+      g.lineStyle(OUTLINE.prop, OUTLINE.color, 1);
+      g.strokeCircle(hx, this.headY, hr * 0.62);
+      // 조준 중엔 타깃을 따라 두리번, 락온 시 정면 응시, 패링당하면 눈이 핑 돈다
+      const lookX = this.phase === 'aim' ? Math.sin(this.aimT * Math.PI * 4) * 0.45 : 0;
+      const lookY = this.resolvedColor === SNIPER_STYLE.reflect ? -0.45 : 0.35;
+      drawEye(g, hx, this.headY, hr * 0.4, lookX, lookY);
+      // 렌즈 글로우 링 — 락온 시 스코프색으로 반짝
+      g.lineStyle(3, SNIPER_STYLE.scope, locked ? 0.9 : 0.45);
+      g.strokeCircle(hx, this.headY, hr * 0.52);
+      // 진지한 조준과 안 어울리는 해맑은 입 (유머)
+      drawOpenSmile(g, hx, this.headY + hr * 0.7, 11);
     }
     // 락온 전조 바 (첫 헤드 위)
     if (this.barFill >= 0) {
