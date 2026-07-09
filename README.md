@@ -146,7 +146,7 @@ happyeggs/
 
 ## 상태 & 로드맵
 
-**문서화 시작** 2026-07-07 · **현재 단계** ✅ M4 Verified(2026-07-08) + 구체화 패스(2026-07-09, [ADR-0010](docs/adr/0010-diegetic-kitchen-scene.md)) — 주방 무대(서빙 바·타일 벽·거치판)·열원 불꽃·무자막 조작 힌트. 다음: M5 야간+스킨.
+**문서화 시작** 2026-07-07 · **현재 단계** ✅ M4 Verified + 구체화([ADR-0010](docs/adr/0010-diegetic-kitchen-scene.md)) + GPGP 손님 루프·코인 경제([ADR-0011](docs/adr/0011-gpgp-customer-loop-and-coins.md), 2026-07-09) — 서빙 리액션(하트/별/분노)·팁·지갑 저장 v2. 다음: M5 야간+스킨(코인 상점).
 
 미결 결정: GDD §16 **DECISION-05(가로 화면)**만 미결 + 구현 파생 **08(총알 구멍)**. 01·02·04·06은 M4 스펙, 03·07은 M1·M3, M0-1~5는 ADR-0004~0008로 확정 — [docs/DECISIONS.md](docs/DECISIONS.md).
 

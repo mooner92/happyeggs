@@ -19,9 +19,9 @@ export const ITEMS: Readonly<Record<string, ItemDef>> = {
 /** 배치 위치(pos 문자열) → 화면 비율 좌표 (GDD §9: 벽걸이·스토브 옆·선반 등)
  *  미스리드 핵심: 칼(wall_right_a)과 방패(wall_right_b)는 **나란히** 걸린다. */
 export const ITEM_POS: Readonly<Record<string, { x: number; y: number }>> = {
-  wall_left: { x: 0.1, y: 0.31 },
-  wall_right_a: { x: 0.8, y: 0.31 },
-  wall_right_b: { x: 0.92, y: 0.34 },
-  stove_side: { x: 0.9, y: 0.53 },
-  shelf: { x: 0.1, y: 0.53 },
+  wall_left: { x: 0.1, y: 0.41 },
+  wall_right_a: { x: 0.8, y: 0.41 },
+  wall_right_b: { x: 0.92, y: 0.44 },
+  stove_side: { x: 0.9, y: 0.55 },
+  shelf: { x: 0.1, y: 0.55 },
 };

@@ -14,6 +14,9 @@ interface ResultData {
   scores?: number[];
   served?: number;
   failed?: number;
+  /** 이번 스테이지 벌이 / 지갑 총액 (ADR-0011 코인 경제) */
+  coinsEarned?: number;
+  coinsTotal?: number;
 }
 
 /**
@@ -76,6 +79,18 @@ export class ResultScene extends Phaser.Scene {
         { fontFamily: 'monospace', fontSize: TEXT.hudSize, color: css(RESULT_STYLE.plateShade) },
       )
       .setOrigin(0.5);
+
+    // 코인 정산 — 이번 벌이 + 지갑 총액 (ADR-0011 GPGP식 영업 정산)
+    if ((data.coinsEarned ?? 0) > 0 || (data.coinsTotal ?? 0) > 0) {
+      this.add
+        .text(
+          cx,
+          DESIGN.height * 0.805,
+          `+${data.coinsEarned ?? 0} coins   (wallet ${data.coinsTotal ?? 0})`,
+          { fontFamily: 'monospace', fontSize: TEXT.hudSize, color: '#f5c542' },
+        )
+        .setOrigin(0.5);
+    }
 
     // 버튼: SHARE / RETRY
     this.button(cx - 130, DESIGN.height * 0.88, 'SHARE', SCORE_TEXT.good, () =>

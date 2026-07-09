@@ -1,18 +1,76 @@
 import Phaser from 'phaser';
-import { BUBBLE, DEPTH, DESIGN, QUEUE } from '../../data/layout';
-import { BUBBLE_STYLE, CUSTOMER_STYLE } from '../../data/palette';
+import { BUBBLE, DEPTH, DESIGN, EMOTE, QUEUE } from '../../data/layout';
+import { BUBBLE_STYLE, CUSTOMER_STYLE, EMOTE_STYLE } from '../../data/palette';
+import type { ReactionKind } from '../../systems/economy';
 import type { Order } from '../../systems/orders';
 import { drawEggIcon } from './eggIcon';
 
 /**
- * 손님 대기열 (GDD §7) — Bacon 톤 절차적 캐릭터(둥근 몸통 + 점 눈 + 미소).
- * 맨 앞(활성) 손님 위에 말풍선으로 주문(계란 × N)을 표시한다. 큐가 바뀔 때 render로 다시 그린다.
+ * 손님 대기열 (GDD §7 + ADR-0011 GPGP 손님 중심) — Bacon 톤 절차적 캐릭터.
+ * 맨 앞 손님은 창구에서 크게(1:1 응대), 서빙 순간 react()로 하트/별/분노 이모트가 떠오른다.
  */
 export class QueueView {
   private readonly g: Phaser.GameObjects.Graphics;
+  private readonly emoteG: Phaser.GameObjects.Graphics;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(private readonly scene: Phaser.Scene) {
     this.g = scene.add.graphics().setDepth(DEPTH.queue);
+    this.emoteG = scene.add.graphics().setDepth(DEPTH.queue + 2);
+  }
+
+  /** 서빙 리액션 — 맨 앞 손님 얼굴 옆에서 이모트가 떠오르며 사라진다 (ADR-0011) */
+  react(kind: ReactionKind): void {
+    const cx = DESIGN.width * QUEUE.xRatios[0]! + EMOTE.dxPx;
+    const headY = DESIGN.height * QUEUE.yRatio - QUEUE.bodyH * QUEUE.scales[0]! * 0.38;
+    const g = this.emoteG;
+    g.clear();
+    g.setPosition(0, 0);
+    g.setAlpha(1);
+    this.drawEmote(g, kind, cx, headY);
+    this.scene.tweens.add({
+      targets: g,
+      y: -EMOTE.risePx,
+      alpha: 0,
+      duration: EMOTE.riseMs,
+      ease: 'Quad.easeOut',
+      onComplete: () => g.clear(),
+    });
+  }
+
+  private drawEmote(g: Phaser.GameObjects.Graphics, kind: ReactionKind, x: number, y: number): void {
+    const r = EMOTE.r;
+    if (kind === 'love') {
+      // 하트 — 원 2개 + 삼각형
+      g.fillStyle(EMOTE_STYLE.love, 1);
+      g.fillCircle(x - r * 0.42, y - r * 0.28, r * 0.5);
+      g.fillCircle(x + r * 0.42, y - r * 0.28, r * 0.5);
+      g.fillTriangle(x - r * 0.88, y - r * 0.08, x + r * 0.88, y - r * 0.08, x, y + r * 0.95);
+    } else if (kind === 'ok') {
+      // 별
+      g.fillStyle(EMOTE_STYLE.ok, 1);
+      g.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const rad = i % 2 === 0 ? r : r * 0.45;
+        const a = (Math.PI / 5) * i - Math.PI / 2;
+        const px = x + Math.cos(a) * rad;
+        const py = y + Math.sin(a) * rad;
+        if (i === 0) g.moveTo(px, py);
+        else g.lineTo(px, py);
+      }
+      g.closePath();
+      g.fillPath();
+    } else {
+      // 분노 마크(💢풍) — 꺾인 선 4개 십자 배열
+      g.lineStyle(5, EMOTE_STYLE.angry, 1);
+      for (let i = 0; i < 4; i++) {
+        const a = (Math.PI / 2) * i + Math.PI / 4;
+        const x1 = x + Math.cos(a) * r * 0.35;
+        const y1 = y + Math.sin(a) * r * 0.35;
+        const x2 = x + Math.cos(a) * r;
+        const y2 = y + Math.sin(a) * r;
+        g.lineBetween(x1, y1, x2, y2);
+      }
+    }
   }
 
   render(orders: readonly Order[]): void {
@@ -91,5 +149,6 @@ export class QueueView {
 
   destroy(): void {
     this.g.destroy();
+    this.emoteG.destroy();
   }
 }

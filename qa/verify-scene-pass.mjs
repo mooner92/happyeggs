@@ -50,6 +50,31 @@ const shot = (page, n) => page.screenshot({ path: `${OUT}/${n}.png` });
   await page.close();
 }
 
+// 5) 서빙 → 손님 리액션 이모트 + 코인 팝업 + 지갑 HUD (ADR-0011)
+{
+  const page = await scene('stage=stage_01&events=off&debug=0');
+  await page.mouse.click(PAN.x, PAN.y); // 깨기
+  await sleep(6300); // PERFECT_WINDOW(6~8초) 진입
+  await page.mouse.move(PAN.x, PAN.y);
+  await page.mouse.down();
+  await sleep(480); // 스윗스팟 → CLEAN
+  await page.mouse.up();
+  await sleep(700);
+  // 위로 스와이프 = 서빙
+  await page.mouse.move(PAN.x, PAN.y);
+  await page.mouse.down();
+  await page.mouse.move(PAN.x, PAN.y - 160, { steps: 6 });
+  await page.mouse.up();
+  await sleep(300);
+  await shot(page, '05-serve-reaction-coins'); // 이모트 + "+N" + 코인 HUD
+
+  // 6) 같은 런에서 RESULT → 코인 정산 라인(+N coins / wallet) + addCoins 저장 경로
+  await page.mouse.click(W * 0.97, H * 0.02);
+  await sleep(800);
+  await shot(page, '06-result-coins');
+  await page.close();
+}
+
 await browser.close();
 console.log(JSON.stringify({ consoleErrors: errors }, null, 2));
 if (errors.length) process.exitCode = 1;

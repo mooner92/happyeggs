@@ -77,6 +77,16 @@ export const STOVE_STYLE = {
 /** 무자막 조작 힌트 픽토그램 */
 export const HINT_STYLE = { icon: 0xf2e9dc, accent: 0x9be564 } as const;
 
+/** 손님 리액션 이모트 (ADR-0011, GPGP식 표정 피드백 — 무자막) */
+export const EMOTE_STYLE = {
+  love: 0xff6b81, // 하트
+  ok: 0xf5c542, // 별
+  angry: 0xff5544, // 분노 마크
+} as const;
+
+/** 코인 (GDD §12 재화) */
+export const COIN_STYLE = { fill: 0xf5c542, edge: 0xb8862a, shine: 0xfff0c2 } as const;
+
 /** 디버그 HUD 텍스트 색 (CSS 색 문자열 — Phaser Text 스타일용) */
 export const HUD_TEXT = { normal: '#9be564', warning: '#ff5544' } as const;
 

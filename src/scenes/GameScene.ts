@@ -25,12 +25,13 @@ import type { EventInstance } from '../systems/eventInstance';
 import { EventScheduler, type RangeRng } from '../systems/eventScheduler';
 import { bus } from '../systems/events';
 import { judgeFlip, PowerGauge, type FlipOutcome } from '../systems/flip';
+import { coinsForServe, reactionForAverage } from '../systems/economy';
 import { circularity, scoreFromQ } from '../systems/scoring';
 import { StageSession } from '../systems/stage';
 import type { StageDef } from '../systems/stageDef';
 import { findStage, STAGES } from '../data/stages';
 import { starsFor } from '../systems/stars';
-import { recordResult, type KVStorage } from '../systems/save';
+import { addCoins, loadSave, recordResult, type KVStorage } from '../systems/save';
 import { DebugHud } from '../ui/DebugHud';
 import type { EnemyView } from '../ui/views/EnemyView';
 import { CatView, WebTrophyView } from '../ui/views/EventEffects';
@@ -123,6 +124,9 @@ export class GameScene extends Phaser.Scene {
   private crackedOnce = false;
   private flippedOnce = false;
   private servedOnce = false;
+  /** 코인 경제 (ADR-0011) — 지갑(저장 로드) + 이번 스테이지 벌이 */
+  private walletCoins = 0;
+  private earnedCoins = 0;
   private readonly powerGauge = new PowerGauge();
   private session!: StageSession;
   private stageDef!: StageDef;
@@ -202,6 +206,12 @@ export class GameScene extends Phaser.Scene {
     this.crackedOnce = false;
     this.flippedOnce = false;
     this.servedOnce = false;
+    this.earnedCoins = 0;
+    try {
+      this.walletCoins = loadSave(window.localStorage as unknown as KVStorage).coins;
+    } catch {
+      this.walletCoins = 0; // localStorage 미지원 환경
+    }
     this.enemyViews.clear();
     this.items = [];
     this.stolenItems.clear();
@@ -271,6 +281,7 @@ export class GameScene extends Phaser.Scene {
       this.session.remainingStock,
       this.session.servedScores.length,
       this.session.averageScore,
+      this.walletCoins + this.earnedCoins,
     );
     // 왼손의 다음 계란 = 재고 어포던스 (구체화 패스)
     this.hands.setHeldEgg(this.session.remainingStock > 0);
@@ -536,9 +547,40 @@ export class GameScene extends Phaser.Scene {
       e.view.destroy();
     }
     this.eggs = this.eggs.filter((e) => !ready.includes(e));
+
+    // 손님 리액션 + 코인(기본급+팁) — GPGP식 1:1 응대 피드백 (ADR-0011)
+    const serveAvg = scores.reduce((s, v) => s + v, 0) / scores.length;
+    this.queueView.react(reactionForAverage(serveAvg));
+    const earned = coinsForServe(scores);
+    if (earned > 0) {
+      this.earnedCoins += earned;
+      this.coinPopup(this.pan.center.x, this.pan.center.y - 110, earned);
+    }
+
     this.session.serveCurrent(scores);
     this.refreshStageUi();
     this.checkStatus();
+  }
+
+  /** 코인 획득 팝업 — 금색 "+N"이 떠오르며 사라진다 (서빙당 1회, per-frame 아님) */
+  private coinPopup(x: number, y: number, n: number): void {
+    const t = this.add
+      .text(x, y, `+${n}`, {
+        fontFamily: 'monospace',
+        fontSize: TEXT.buttonSize,
+        color: '#f5c542',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+      .setDepth(DEPTH.popup);
+    this.tweens.add({
+      targets: t,
+      y: y - 70,
+      alpha: 0,
+      duration: 800,
+      ease: 'Quad.easeOut',
+      onComplete: () => t.destroy(),
+    });
   }
 
   // ── 이벤트(방해꾼) ──
@@ -679,14 +721,17 @@ export class GameScene extends Phaser.Scene {
     const avg = this.session.averageScore;
     const stars = starsFor(avg, this.stageDef.starThresholds);
 
-    // 진행도 저장 (localStorage, schema version) — 클리어 시에만 최고 기록 갱신
+    // 진행도 저장 (localStorage, schema version) — 클리어 시에만 최고 기록 갱신.
+    // 코인은 클리어 여부와 무관하게 서빙한 만큼 적립 (GPGP식 — 번 돈은 내 돈, ADR-0011)
     let best = avg;
+    let coinsTotal = this.walletCoins + this.earnedCoins;
     try {
       const storage = window.localStorage as unknown as KVStorage;
-      const save = cleared
-        ? recordResult(storage, this.stageDef.id, avg, stars, true)
-        : recordResult(storage, this.stageDef.id, 0, 0, false);
+      if (cleared) recordResult(storage, this.stageDef.id, avg, stars, true);
+      else recordResult(storage, this.stageDef.id, 0, 0, false);
+      const save = addCoins(storage, this.earnedCoins);
       best = save.stages[this.stageDef.id]?.bestAverage ?? avg;
+      coinsTotal = save.coins;
     } catch {
       /* localStorage 미지원 환경 무시 */
     }
@@ -701,6 +746,8 @@ export class GameScene extends Phaser.Scene {
       scores: this.session.servedScores.slice(),
       served: this.session.servedScores.length,
       failed: this.session.failedCount,
+      coinsEarned: this.earnedCoins,
+      coinsTotal,
     });
   }
 

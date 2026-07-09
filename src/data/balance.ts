@@ -96,6 +96,24 @@ export const ORDER = {
   visibleCount: 4,
 } as const;
 
+/** 코인 보상 (GDD §12 BM 스캐폴드 — ADR-0011 손님 중심 루프 + 경제) — 계란 1개 서빙당 */
+export const COIN = {
+  /** 기본 지불 */
+  basePay: 2,
+  /** 팁 구간 — 점수 이상이면 코인 추가 (내림차순 첫 매칭) */
+  tips: [
+    { min: 95, coins: 4 },
+    { min: 85, coins: 2 },
+    { min: 70, coins: 1 },
+  ],
+} as const;
+
+/** 손님 리액션 임계 — 서빙 평균 점수 기준 (ADR-0011) */
+export const REACTION = {
+  love: 90, // 이상 → 하트
+  ok: 70, // 이상 → 별 / 미만 → 분노
+} as const;
+
 /** M1 하드코딩 스테이지 1 (M3에서 JSON 스테이지 데이터로 이전) */
 export const STAGE1 = {
   customers: 5,

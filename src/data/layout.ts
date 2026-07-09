@@ -110,14 +110,22 @@ export const SERVE_SWIPE_PX = 90;
 /** 탭(깨기)로 판정하는 최대 홀드 ms — 이보다 길게 누르면 뒤집기 게이지 */
 export const TAP_MAX_MS = 180;
 
-/** 손님 대기열 — 상단, 앞에서부터 x비율·스케일 (GDD §7 3~4명 표시) */
+/** 손님 대기열 — 상단, 앞에서부터 x비율·스케일 (GDD §7 3~4명 표시)
+ *  yRatio는 서빙 바(0.30)에 맞춰 내림 — 상단 손님 존을 넓혀 적 배치 여유 확보 (2026-07-09 디렉터) */
 export const QUEUE = {
-  yRatio: 0.15,
-  xRatios: [0.3, 0.5, 0.66, 0.8],
-  scales: [1.0, 0.82, 0.72, 0.66],
+  yRatio: 0.235,
+  /** 맨 앞 손님을 창구(중앙 근처)로 키워 1:1 응대 느낌 (ADR-0011 GPGP 손님 중심) */
+  xRatios: [0.4, 0.62, 0.76, 0.88],
+  scales: [1.12, 0.78, 0.68, 0.6],
   bodyW: 128,
   bodyH: 150,
 } as const;
+
+/** 손님 리액션 이모트 — 맨 앞 손님 얼굴 옆(말풍선과 겹치지 않게) (ADR-0011) */
+export const EMOTE = { dxPx: 92, r: 22, riseMs: 850, risePx: 34 } as const;
+
+/** 코인 HUD — 재고 오른쪽 */
+export const COIN_HUD = { dxFromCenter: 96, iconR: 13 } as const;
 
 /** 말풍선 (맨 앞 손님 주문) */
 export const BUBBLE = { w: 130, h: 74, abovePx: 118, eggIconR: 13, eggGapPx: 34 } as const;
@@ -161,8 +169,9 @@ export const ITEM = {
 /** 아이템 거치판 (구체화 패스) — 나무 판 + 걸이 */
 export const PLAQUE = { w: 116, h: 116, r: 16 } as const;
 
-/** 서빙 바 — 손님이 뒤에 서는 카운터 밴드 (구체화 패스) */
-export const SERVE_BAR = { topRatio: 0.19, heightPx: 52, lipPx: 6 } as const;
+/** 서빙 바 — 손님이 뒤에 서는 카운터 밴드 (구체화 패스)
+ *  topRatio 0.19→0.30: 주방 벽 구간 압축 + 상단 손님 존 확대(적 배치 여유, 2026-07-09 디렉터) */
+export const SERVE_BAR = { topRatio: 0.3, heightPx: 52, lipPx: 6 } as const;
 
 /** 벽 타일 — 줄눈 격자 (구체화 패스, 은은하게) */
 export const WALL_TILE = { rowPx: 96, colPx: 150, lineW: 3, alpha: 0.16 } as const;
@@ -182,9 +191,9 @@ export const STOVE = {
 /** 조작 힌트 픽토그램 (무자막) */
 export const HINT = { r: 30, abovePanPx: 130 } as const;
 
-/** 재채기 손님 (GDD §8.1 ③) — 대기열 앞에서 팬 쪽으로 재채기 */
+/** 재채기 손님 (GDD §8.1 ③) — 서빙 바 좌측 끝에서 새치기하듯 팬 쪽으로 재채기 */
 export const SNEEZE = {
-  xRatio: 0.28,
+  xRatio: 0.15,
   yRatio: 0.24,
   bodyW: 110,
   bodyH: 130,

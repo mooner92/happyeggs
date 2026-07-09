@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  addCoins,
   loadSave,
   recordResult,
   SAVE_KEY,
@@ -48,7 +49,7 @@ describe('save', () => {
     expect(s.stages['stage_02']?.bestStars).toBe(1);
   });
 
-  it('스키마 불일치는 리셋', () => {
+  it('알 수 없는 스키마는 리셋', () => {
     const st = fakeStorage({
       [SAVE_KEY]: JSON.stringify({ schemaVersion: 999, stages: { x: {} } }),
     });
@@ -58,5 +59,33 @@ describe('save', () => {
   it('깨진 JSON은 리셋', () => {
     const st = fakeStorage({ [SAVE_KEY]: '{not json' });
     expect(loadSave(st).stages).toEqual({});
+  });
+
+  it('v1 저장은 스테이지 기록을 보존하며 v2로 마이그레이션(coins=0)', () => {
+    const st = fakeStorage({
+      [SAVE_KEY]: JSON.stringify({
+        schemaVersion: 1,
+        stages: { stage_01: { bestAverage: 91.2, bestStars: 2, cleared: true } },
+      }),
+    });
+    const s = loadSave(st);
+    expect(s.schemaVersion).toBe(SAVE_SCHEMA_VERSION);
+    expect(s.stages['stage_01']?.bestAverage).toBe(91.2);
+    expect(s.coins).toBe(0);
+  });
+
+  it('addCoins 적립·지출, 0 미만 방지', () => {
+    const st = fakeStorage();
+    expect(addCoins(st, 12).coins).toBe(12);
+    expect(addCoins(st, -5).coins).toBe(7);
+    expect(addCoins(st, -100).coins).toBe(0);
+    expect(loadSave(st).coins).toBe(0);
+  });
+
+  it('recordResult는 coins를 보존한다', () => {
+    const st = fakeStorage();
+    addCoins(st, 30);
+    recordResult(st, 'stage_01', 88, 1, true);
+    expect(loadSave(st).coins).toBe(30);
   });
 });
