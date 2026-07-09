@@ -74,6 +74,19 @@ export const ENEMIES: readonly EnemyDef[] = [
     onSuccess: ['fx_parry_reflect', 'sfx_clang'],
     onFail: ['bullet_hole', 'actor_escape'],
   },
+  // ⑦ 불 끄기 적 (GDD §8.1 ⑦, M5 야간) — 스토브로 침입해 불을 끈다. window 중 탭으로 저지.
+  // 실패 = 불 꺼짐(조리 정지) + 가짜불 스티커(열화상에서 차갑게 보임) → 스토브 탭으로 재점화
+  {
+    id: 'fire_snuffer',
+    stageUnlock: 3,
+    telegraphMs: 1300, // 좌측에서 스토브로 잠입
+    responseWindowMs: 1500, // 소화기 들어올림 (탭 저지 허용)
+    input: 'tap',
+    cooldownMs: [11000, 17000],
+    maxConcurrent: 1,
+    onSuccess: ['fx_snuffer_flee', 'sfx_yelp'],
+    onFail: ['fire_out', 'actor_escape'],
+  },
   // ⑧ 지역 확장 더미 (GDD §8.1 ⑧) — 핸들러 없이 스키마 수용만 증명. stageUnlock 99라 미등장.
   {
     id: 'penguin_dummy',

@@ -139,6 +139,12 @@ export const REACTION = {
   ok: 70, // 이상 → 별 / 미만 → 분노
 } as const;
 
+/** 불 끄기/재점화 (GDD §8.1 ⑦, M5) — 판정 수치 */
+export const FIRE = {
+  /** 재점화 탭 허용 반경 = 팬 반경 × 이 계수 (스토브 받침까지 여유) */
+  reigniteRadiusFactor: 1.45,
+} as const;
+
 /** M1 하드코딩 스테이지 1 (M3에서 JSON 스테이지 데이터로 이전) */
 export const STAGE1 = {
   customers: 5,

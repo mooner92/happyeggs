@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { STAGES } from '../data/stages';
 import { DEPTH, DESIGN, TEXT } from '../data/layout';
 import { css, PALETTE, RESULT_STYLE, SCORE_TEXT, WALL_GRADIENT, YOLK_STYLE } from '../data/palette';
 import type { FailReason, StageStatus } from '../systems/stage';
@@ -103,16 +104,30 @@ export class ResultScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // 버튼: SHARE / RETRY (칩 배경)
-    this.button(cx - 130, DESIGN.height * 0.88, 'SHARE', SCORE_TEXT.good, () =>
-      this.shareResult(stageId, avg),
+    // 버튼 2줄 (칩 배경): [SHARE][RETRY] / [SHOP][NEXT(클리어+다음 스테이지 존재 시)]
+    const y1 = DESIGN.height * 0.855;
+    const y2 = DESIGN.height * 0.935;
+    this.button(cx - 130, y1, 'SHARE', SCORE_TEXT.good, () => this.shareResult(stageId, avg));
+    this.button(cx + 130, y1, 'RETRY ▸', css(PALETTE.white), () =>
+      this.fadeTo('Game', { stageId }),
     );
-    this.button(cx + 130, DESIGN.height * 0.88, 'RETRY ▸', css(PALETTE.white), () => {
-      this.cameras.main.fadeOut(220, 0, 0, 0);
-      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
-        this.scene.start('Game'),
+    this.button(cx - 130, y2, 'SHOP', '#f5c542', () => this.fadeTo('Shop'));
+    // 다음 스테이지 진행 (M5) — 클리어 시에만
+    const nextIdx = STAGES.findIndex((s) => s.id === stageId) + 1;
+    const next = cleared && nextIdx > 0 ? STAGES[nextIdx] : undefined;
+    if (next) {
+      this.button(cx + 130, y2, 'NEXT ▸', SCORE_TEXT.good, () =>
+        this.fadeTo('Game', { stageId: next.id }),
       );
-    });
+    }
+  }
+
+  /** 페이드 아웃 후 씬 전환 (디자인 v1) */
+  private fadeTo(key: string, data?: object): void {
+    this.cameras.main.fadeOut(220, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
+      this.scene.start(key, data),
+    );
   }
 
   private button(x: number, y: number, label: string, color: string, onTap: () => void): void {

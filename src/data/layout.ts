@@ -79,6 +79,9 @@ export const DEPTH = {
   item: 6,
   enemy: 40,
   effect: 45,
+  /** 야간 열화상 오버레이 (M5) — 적·주방은 이 아래(차갑게), 뜨거운 것만 위 */
+  nightOverlay: 60,
+  hot: 62,
   gauge: 900,
   popup: 950,
   hud: 1000,
@@ -190,6 +193,15 @@ export const STOVE = {
 
 /** 조작 힌트 픽토그램 (무자막) */
 export const HINT = { r: 30, abovePanPx: 130 } as const;
+
+/** 불 끄기 적 (GDD §8.1 ⑦, M5) — 좌측 가장자리에서 스토브(팬 좌하단)로 잠입 */
+export const SNUFFER = {
+  fromXRatio: -0.08,
+  toXRatio: 0.22,
+  yRatio: 0.62,
+  bodyW: 92,
+  bodyH: 118,
+} as const;
 
 /** 재채기 손님 (GDD §8.1 ③) — 서빙 바 좌측 끝에서 새치기하듯 팬 쪽으로 재채기 */
 export const SNEEZE = {

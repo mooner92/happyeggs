@@ -62,7 +62,7 @@ stateDiagram-v2
 | [M2-event-framework.md](M2-event-framework.md) | M2 — 이벤트 프레임워크 | **Verified** (2026-07-08) |
 | [M3-stage-system.md](M3-stage-system.md) | M3 — 스테이지 시스템 | **Verified** (2026-07-08) |
 | [M4-enemies-items.md](M4-enemies-items.md) | M4 — 적 확장 + 아이템 | **Verified** (2026-07-08) |
-| M5-night-skins.md | M5 — 야간 + 스킨 | 미작성 |
+| [M5-night-skins.md](M5-night-skins.md) | M5 — 야간 + 스킨 상점 | **Verified** (2026-07-09) |
 | M6-polish.md | M6 — 폴리시 | 미작성 |
 | M7-packaging.md | M7 — 앱/스팀 패키징 (별도 승인 후 착수) | 미작성 |
 

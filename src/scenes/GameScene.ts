@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEBUG, EGG, FLOW, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
+import { DEBUG, EGG, FIRE, FLOW, HEAT, ORDER, SCORE, STAGE1 } from '../data/balance';
 import { ENEMIES } from '../data/enemies';
 import { ITEMS, ITEM_POS } from '../data/items';
 import {
@@ -16,7 +16,7 @@ import {
   TEXT,
   toPx,
 } from '../data/layout';
-import { COOK_STATE_STYLE, HUD_TEXT, PALETTE } from '../data/palette';
+import { COOK_STATE_STYLE, HUD_TEXT, NIGHT_STYLE, PALETTE } from '../data/palette';
 import { CookingModel } from '../systems/CookingModel';
 import type { BlobState } from '../systems/EggBlobModel';
 import {
@@ -39,6 +39,7 @@ import type { StageDef } from '../systems/stageDef';
 import { findStage, STAGES } from '../data/stages';
 import { starsFor } from '../systems/stars';
 import { addCoins, loadSave, recordResult, type KVStorage } from '../systems/save';
+import { findSkin, type SkinDef } from '../data/skins';
 import { DebugHud } from '../ui/DebugHud';
 import type { EnemyView } from '../ui/views/EnemyView';
 import { CatView, WebTrophyView } from '../ui/views/EventEffects';
@@ -57,6 +58,7 @@ import { RobberView } from '../ui/views/RobberView';
 import { ScorePopupView } from '../ui/views/ScorePopupView';
 import { SneezeView } from '../ui/views/SneezeView';
 import { SniperView } from '../ui/views/SniperView';
+import { SnufferView } from '../ui/views/SnufferView';
 import { SpiderView } from '../ui/views/SpiderView';
 import { SprinklerView } from '../ui/views/SprinklerView';
 import { StageHudView } from '../ui/views/StageHudView';
@@ -84,6 +86,8 @@ interface EggEntity {
   flyPenalty: boolean;
   /** 저격수 총알 구멍 수 (GDD §8.1 ⑤) — 개당 −12 */
   bulletHoles: number;
+  /** 야간 열 글로우 (M5) — 조리 중인 계란이 열화상에서 밝게 */
+  nightGlow: Phaser.GameObjects.Image | null;
   outcome: FlipOutcome | null;
   offsetY: number;
   scaleX: number;
@@ -135,6 +139,11 @@ export class GameScene extends Phaser.Scene {
   /** 코인 경제 (ADR-0011) — 지갑(저장 로드) + 이번 스테이지 벌이 */
   private walletCoins = 0;
   private earnedCoins = 0;
+  /** 야간 + 불 상태 (M5) — 불 꺼지면 조리 정지, 스토브 탭으로 재점화 */
+  private night = false;
+  private fireOn = true;
+  /** 장착 스킨 (GDD §12) — 저장에서 로드, 계란 렌더 색 오버라이드 */
+  private skin: SkinDef | undefined;
   private readonly powerGauge = new PowerGauge();
   private session!: StageSession;
   private stageDef!: StageDef;
@@ -166,11 +175,13 @@ export class GameScene extends Phaser.Scene {
     super('Game');
   }
 
-  create(): void {
+  create(data?: { stageId?: string }): void {
     this.cameras.main.setBackgroundColor(PALETTE.bg);
     // 스테이지 정의 먼저 — 스토브(열원 시각화)가 def를 필요로 한다 (GDD §10)
+    // 우선순위: 씬 데이터(NEXT 진행) > URL ?stage= > 첫 스테이지
     const params = new URLSearchParams(window.location.search);
-    this.stageDef = findStage(params.get('stage') ?? '') ?? STAGES[0]!;
+    this.stageDef =
+      findStage(data?.stageId ?? '') ?? findStage(params.get('stage') ?? '') ?? STAGES[0]!;
     const def = this.stageDef;
 
     this.cameras.main.fadeIn(280, 0, 0, 0); // 부드러운 씬 진입 (디자인 v1)
@@ -183,6 +194,23 @@ export class GameScene extends Phaser.Scene {
       .image(DESIGN.width / 2, DESIGN.height / 2, 'vignette')
       .setDisplaySize(DESIGN.width, DESIGN.height)
       .setDepth(DEPTH.gauge - 2);
+
+    // 야간(열화상, M5) — 남색 오버레이 아래는 차갑게, 뜨거운 것(불꽃·조리 계란)만 위에서 밝게
+    this.night = def.night === true;
+    this.fireOn = true;
+    if (this.night) {
+      this.add
+        .rectangle(
+          DESIGN.width / 2,
+          DESIGN.height / 2,
+          DESIGN.width,
+          DESIGN.height,
+          NIGHT_STYLE.overlay,
+          NIGHT_STYLE.overlayAlpha,
+        )
+        .setDepth(DEPTH.nightOverlay);
+      this.stove.setNight();
+    }
     this.gauge = new PowerGaugeView(this);
     this.hint = new HintView(this);
     this.scorePopup = new ScorePopupView(this);
@@ -223,9 +251,12 @@ export class GameScene extends Phaser.Scene {
     this.pushedOnce = false;
     this.earnedCoins = 0;
     try {
-      this.walletCoins = loadSave(window.localStorage as unknown as KVStorage).coins;
+      const save = loadSave(window.localStorage as unknown as KVStorage);
+      this.walletCoins = save.coins;
+      this.skin = findSkin(save.equippedSkin); // 장착 스킨 → 계란 색 (GDD §12)
     } catch {
       this.walletCoins = 0; // localStorage 미지원 환경
+      this.skin = undefined;
     }
     this.enemyViews.clear();
     this.items = [];
@@ -426,6 +457,16 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     if (heldMs < TAP_MAX_MS) {
+      // 불 꺼짐(M5) — 스토브/팬 근처 탭 = 재점화 (조리 재개가 최우선)
+      if (!this.fireOn) {
+        const d = Math.hypot(pointer.x - this.pan.center.x, pointer.y - this.pan.center.y);
+        if (d < this.pan.radius * FIRE.reigniteRadiusFactor) {
+          this.fireOn = true;
+          this.stove.setFire(true, false);
+          this.sparks.emitParticleAt(this.pan.center.x, this.pan.center.y + this.pan.radius * 0.5, 9);
+          return;
+        }
+      }
       // 흐른 흰자 모으기 우선 (ADR-0012) — 계란 근처 탭이면 밀기, 빈 팬 탭이면 깨기
       if (this.tryPush(pointer.x, pointer.y)) return;
       if (this.pan.containsPoint(pointer.x, pointer.y, EGG.INITIAL_RADIUS)) {
@@ -462,7 +503,7 @@ export class GameScene extends Phaser.Scene {
       id,
       blob: createBlob(SEED_BASE + id * SEED_STEP, x, y),
       cooking: new CookingModel(),
-      view: new EggView(this, EGG.VERTEX_COUNT),
+      view: new EggView(this, EGG.VERTEX_COUNT, this.skin, this.night ? DEPTH.hot + 1 : DEPTH.egg),
       smokeCriticalEmitted: false,
       flipped: false,
       lost: false,
@@ -471,6 +512,9 @@ export class GameScene extends Phaser.Scene {
       hairPenalty: false,
       flyPenalty: false,
       bulletHoles: 0,
+      nightGlow: this.night
+        ? this.add.image(x, y, 'soft-glow').setTint(NIGHT_STYLE.hotGlow).setDepth(DEPTH.hot)
+        : null,
       outcome: null,
       offsetY: 0,
       scaleX: 1,
@@ -566,6 +610,7 @@ export class GameScene extends Phaser.Scene {
       onUpdate: (tw) => (e.offsetY = tw.getValue() ?? 0),
       onComplete: () => {
         e.view.destroy();
+        e.nightGlow?.destroy();
         this.eggs = this.eggs.filter((x) => x !== e);
       },
     });
@@ -573,7 +618,10 @@ export class GameScene extends Phaser.Scene {
 
   private failOrder(): void {
     this.session.failCurrent();
-    for (const e of this.eggs) e.view.destroy();
+    for (const e of this.eggs) {
+      e.view.destroy();
+      e.nightGlow?.destroy();
+    }
     this.eggs = [];
     this.refreshStageUi();
     this.checkStatus();
@@ -594,6 +642,7 @@ export class GameScene extends Phaser.Scene {
       scores.push(score);
       this.scorePopup.popup(e.blob.cx, e.blob.cy - 40, score);
       e.view.destroy();
+      e.nightGlow?.destroy();
     }
     this.eggs = this.eggs.filter((e) => !ready.includes(e));
 
@@ -653,6 +702,8 @@ export class GameScene extends Phaser.Scene {
         return new FlyView(this);
       case 'sniper':
         return new SniperView(this, () => this.onSniperTrap(inst));
+      case 'fire_snuffer':
+        return new SnufferView(this);
       default:
         return null; // 핸들러 없는 적(더미)은 뷰 없음
     }
@@ -726,6 +777,12 @@ export class GameScene extends Phaser.Scene {
       case 'fx_parry_reflect':
         // 펜싱칼 패링 반사 (GDD §8.1 ⑤) — 초록 스파크
         this.sparks.emitParticleAt(DESIGN.width * 0.5, DESIGN.height * 0.5, 8);
+        break;
+      case 'fire_out':
+        // 불 끄기 적 성공 (GDD §8.1 ⑦) — 불 꺼짐 + 가짜불 스티커 (조리 정지, 스토브 탭 재점화)
+        this.fireOn = false;
+        this.stove.setFire(false, true);
+        this.cameras.main.flash(200, 120, 170, 255); // 차가운 플래시
         break;
       case 'bullet_hole': {
         // 저격수 실패 → 대상 후라이에 구멍 count개 (증식 수만큼)
@@ -815,7 +872,8 @@ export class GameScene extends Phaser.Scene {
         stepSpread(egg.blob, dtSec);
         stepDrift(egg.blob, dtSec); // 흰자가 한쪽으로 흐른다 — 밀어서 모아야 함 (ADR-0012)
         const before = egg.cooking.state;
-        const transitions = egg.cooking.update(dtSec, this.heatCoeff);
+        // 불 꺼짐(M5) = 유효 열 0 — 조리 정지 (스토브 탭으로 재점화)
+        const transitions = egg.cooking.update(dtSec, this.fireOn ? this.heatCoeff : 0);
         let from = before;
         for (const to of transitions) {
           bus.emit('cook:stateChanged', { eggId: egg.id, from, to });
@@ -836,8 +894,19 @@ export class GameScene extends Phaser.Scene {
         egg.cooking.doneness,
         !egg.flipped && !egg.lost && !egg.frozen,
       );
-      // 지글지글 스팀 — 익는 중(SET~OVERDONE)일 때 위로 피어오른다
-      if (emitSteam && !egg.flipped && !egg.lost && !egg.frozen) {
+      // 야간 열 글로우 (M5) — 조리 중일수록 뜨겁게 빛난다
+      if (egg.nightGlow) {
+        const heatAlpha =
+          !egg.flipped && !egg.lost && !egg.frozen && this.fireOn
+            ? Math.min(0.4, 0.14 + egg.cooking.doneness * 0.03)
+            : 0.05;
+        egg.nightGlow
+          .setPosition(egg.blob.cx, egg.blob.cy + egg.offsetY)
+          .setDisplaySize(egg.blob.baseRadius * 3.4, egg.blob.baseRadius * 2.4)
+          .setAlpha(heatAlpha);
+      }
+      // 지글지글 스팀 — 익는 중(SET~OVERDONE)일 때 위로 피어오른다 (불 꺼지면 정지)
+      if (emitSteam && !egg.flipped && !egg.lost && !egg.frozen && this.fireOn) {
         const s = egg.cooking.state;
         if (s === 'SET' || s === 'PERFECT_WINDOW' || s === 'OVERDONE') {
           this.steam.emitParticleAt(
@@ -871,13 +940,15 @@ export class GameScene extends Phaser.Scene {
     // 무자막 동사 힌트 — 각 조작 첫 성공까지만 (탭→홀드→스와이프 순서로 자연 유도)
     if (!this.ended && !this.flipping && !this.charging) {
       const hintY = this.pan.center.y - HINT.abovePanPx;
-      // 밀기 힌트 — 불룩해진 지점 위 (첫 밀기 성공까지)
-      const bulge = this.pushedOnce
-        ? null
-        : this.eggs
-            .filter((e) => !e.flipped && !e.lost && !e.frozen)
-            .map((e) => bulgePoint(e.blob, FLOW.hintBulgePx))
-            .find((b) => b !== null);
+      // 밀기 힌트 — 불룩해진 지점 위 (첫 밀기 성공까지). per-frame 배열 할당 금지 — 루프로
+      let bulge: ReturnType<typeof bulgePoint> = null;
+      if (!this.pushedOnce) {
+        for (const e of this.eggs) {
+          if (e.flipped || e.lost || e.frozen) continue;
+          bulge = bulgePoint(e.blob, FLOW.hintBulgePx);
+          if (bulge) break;
+        }
+      }
       if (!this.crackedOnce && this.liveEggs().length === 0 && this.session.remainingStock > 0) {
         this.hint.show('crack', this.pan.center.x, this.pan.center.y);
       } else if (bulge) {

@@ -87,6 +87,25 @@ export const EMOTE_STYLE = {
 /** 코인 (GDD §12 재화) */
 export const COIN_STYLE = { fill: 0xf5c542, edge: 0xb8862a, shine: 0xfff0c2 } as const;
 
+/** 야간/열화상 (GDD §8.1 ⑦, M5) — 남색 오버레이 + 뜨거운 것만 밝게 */
+export const NIGHT_STYLE = {
+  overlay: 0x0a1230, // 화면 전체 남색 덮개
+  overlayAlpha: 0.48,
+  hotGlow: 0xff9a4a, // 조리 중 계란·스토브의 열 글로우
+  coldFlame: 0x6ab8ff, // 가짜불 스티커 — 열화상에서 차갑게(파랗게) 보임
+  coldFlameCore: 0xcfe8ff,
+} as const;
+
+/** 불 끄기 적 (GDD §8.1 ⑦) — 소화기 든 잠입자 */
+export const SNUFFER_STYLE = {
+  body: 0x2f3a4a,
+  hood: 0x1e2733,
+  eye: 0xbfe0ff,
+  tank: 0xc0392b, // 소화기 몸통
+  nozzle: 0x9a9da3,
+  puff: 0xdfe8f0, // 분사 연기
+} as const;
+
 /** 디버그 HUD 텍스트 색 (CSS 색 문자열 — Phaser Text 스타일용) */
 export const HUD_TEXT = { normal: '#9be564', warning: '#ff5544' } as const;
 

@@ -38,14 +38,27 @@ const IDENTITY: EggTransform = { offsetY: 0, scaleX: 1 };
  * per-frame 할당 0: Point 배열은 생성자에서 1회 할당, draw는 x/y만 mutate (GDD §2).
  * 모델(BlobState)을 읽기만 하며 역참조하지 않는다.
  */
+/** 스킨 색 오버라이드 (GDD §12 M5) — 미지정 필드는 기본 팔레트 */
+export interface EggSkin {
+  readonly yolkFill?: number;
+  readonly yolkEdge?: number;
+  readonly whiteTint?: number;
+}
+
 export class EggView {
   private readonly g: Phaser.GameObjects.Graphics;
   private readonly shadow: Phaser.GameObjects.Image;
   private readonly points: Phaser.Geom.Point[];
 
-  constructor(scene: Phaser.Scene, vertexCount: number) {
-    this.shadow = scene.add.image(0, 0, 'soft-shadow').setDepth(DEPTH.egg - 1).setAlpha(0.4);
-    this.g = scene.add.graphics().setDepth(DEPTH.egg);
+  constructor(
+    scene: Phaser.Scene,
+    vertexCount: number,
+    private readonly skin: EggSkin = {},
+    /** 야간(M5) — 계란은 뜨거운 물체이므로 열화상 오버레이 위에서 밝게 렌더 */
+    baseDepth: number = DEPTH.egg,
+  ) {
+    this.shadow = scene.add.image(0, 0, 'soft-shadow').setDepth(baseDepth - 1).setAlpha(0.4);
+    this.g = scene.add.graphics().setDepth(baseDepth);
     this.points = Array.from({ length: vertexCount }, () => new Phaser.Geom.Point());
   }
 
@@ -78,8 +91,11 @@ export class EggView {
 
     const g = this.g;
     g.clear();
-    // 흰자
-    g.fillStyle(style.fill, style.alpha);
+    // 흰자 — 스킨 whiteTint는 밝은(익은 흰자) 상태에서만 적용, BURNT/SMOKE의 탄 색은 유지(가독성)
+    const brightWhite = style.alpha >= 0.9 && (style.fill >> 16) >= 0xc8;
+    const whiteFill =
+      this.skin.whiteTint !== undefined && brightWhite ? this.skin.whiteTint : style.fill;
+    g.fillStyle(whiteFill, style.alpha);
     g.fillPoints(this.points, true);
     g.lineStyle(EDGE_WIDTH, style.edge, style.edgeAlpha);
     g.strokePoints(this.points, true, true);
@@ -113,13 +129,16 @@ export class EggView {
     const yolkY = cy + (blob.yolk.y - cy) * sq + offsetY;
     const yr = blob.yolk.r;
     const yolkAlpha = Math.min(1, style.alpha + 0.25);
-    g.fillStyle(yolkBroken ? YOLK_STYLE.edge : 0xe8992b, yolkAlpha); // 외곽 진한 톤
+    const yolkFill = this.skin.yolkFill ?? YOLK_STYLE.fill; // 스킨 오버라이드 (GDD §12)
+    const yolkEdge = this.skin.yolkEdge ?? YOLK_STYLE.edge;
+    const yolkOuter = this.skin.yolkEdge ?? 0xe8992b; // 외곽 진한 톤(기본 팔레트)
+    g.fillStyle(yolkBroken ? yolkEdge : yolkOuter, yolkAlpha);
     g.fillEllipse(yolkX, yolkY, yr * 2 * scaleX, yr * 2 * sq);
     if (!yolkBroken) {
-      g.fillStyle(YOLK_STYLE.fill, yolkAlpha); // 중심 밝은 톤
+      g.fillStyle(yolkFill, yolkAlpha); // 중심 밝은 톤
       g.fillEllipse(yolkX, yolkY - yr * 0.08 * sq, yr * 1.6 * scaleX, yr * 1.6 * sq);
     }
-    g.lineStyle(YOLK_EDGE_WIDTH, YOLK_STYLE.edge, style.alpha);
+    g.lineStyle(YOLK_EDGE_WIDTH, yolkEdge, style.alpha);
     g.strokeEllipse(yolkX, yolkY, yr * 2 * scaleX, yr * 2 * sq);
     if (yolkBroken) {
       g.lineStyle(2, 0x3a2a10, style.alpha);

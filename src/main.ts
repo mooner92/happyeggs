@@ -5,6 +5,7 @@ import { BootScene } from './scenes/BootScene';
 import { PreloadScene } from './scenes/PreloadScene';
 import { GameScene } from './scenes/GameScene';
 import { ResultScene } from './scenes/ResultScene';
+import { ShopScene } from './scenes/ShopScene';
 
 // 세로 9:16 논리 해상도 720×1280(ADR-0004), FIT + 중앙 정렬. 입력은 pointerdown 기준(GDD §2).
 // `?renderer=canvas`로 CANVAS 강제 — 헤드리스 QA(Playwright)용. 기본은 AUTO(WebGL 우선).
@@ -22,5 +23,5 @@ new Phaser.Game({
   },
   input: { activePointers: 2 },
   render: { roundPixels: true },
-  scene: [BootScene, PreloadScene, GameScene, ResultScene],
+  scene: [BootScene, PreloadScene, GameScene, ResultScene, ShopScene],
 });
