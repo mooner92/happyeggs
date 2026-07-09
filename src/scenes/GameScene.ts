@@ -10,6 +10,7 @@ import {
   DRAG_CUT_PX,
   FLIP_ANIM,
   HINT,
+  QUEUE,
   SERVE_SWIPE_PX,
   SPIDER,
   TAP_MAX_MS,
@@ -40,6 +41,7 @@ import { findStage, STAGES } from '../data/stages';
 import { starsFor } from '../systems/stars';
 import { addCoins, loadSave, recordResult, type KVStorage } from '../systems/save';
 import { findSkin, type SkinDef } from '../data/skins';
+import { sfx } from '../ui/audio';
 import { DebugHud } from '../ui/DebugHud';
 import type { EnemyView } from '../ui/views/EnemyView';
 import { CatView, WebTrophyView } from '../ui/views/EventEffects';
@@ -397,6 +399,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onDown(pointer: Phaser.Input.Pointer): void {
+    sfx.unlock(); // 첫 제스처에서 오디오 정책 해제 (idempotent, M6)
     if (this.flipping || this.ended) return;
     const now = this.time.now;
     // 더블탭 — 강도 이벤트 대응
@@ -462,6 +465,7 @@ export class GameScene extends Phaser.Scene {
         const d = Math.hypot(pointer.x - this.pan.center.x, pointer.y - this.pan.center.y);
         if (d < this.pan.radius * FIRE.reigniteRadiusFactor) {
           this.fireOn = true;
+          sfx.play('reignite');
           this.stove.setFire(true, false);
           this.sparks.emitParticleAt(this.pan.center.x, this.pan.center.y + this.pan.radius * 0.5, 9);
           return;
@@ -483,6 +487,7 @@ export class GameScene extends Phaser.Scene {
       if (d > e.blob.baseRadius + FLOW.maxOutPx + 26) continue;
       if (pushBlob(e.blob, x, y) > 0) {
         this.pushedOnce = true;
+        sfx.play('push');
         this.hands.poke(x, y);
         this.steam.emitParticleAt(x, y, 2); // 칙— 눌린 피드백
         return true;
@@ -521,9 +526,34 @@ export class GameScene extends Phaser.Scene {
     });
     this.crackedOnce = true;
     bus.emit('egg:cracked', { eggId: id, x, y });
+    sfx.play('crack');
     this.sparks.emitParticleAt(x, y, 7); // 크랙 팝
+    this.shellShards(x, y); // 껍데기 파편 (M6 게임필)
     this.refreshStageUi();
     this.checkStatus();
+  }
+
+  /** 껍데기 파편 — 반쪽 2개가 좌우로 튀며 사라진다 (M6, 탭당 1회 할당) */
+  private shellShards(x: number, y: number): void {
+    for (const dir of [-1, 1]) {
+      const g = this.add.graphics().setDepth(DEPTH.egg + 3);
+      g.fillStyle(PALETTE.white, 1);
+      g.beginPath();
+      g.arc(0, 0, 16, Math.PI, 0, false);
+      g.closePath();
+      g.fillPath();
+      g.setPosition(x + dir * 8, y);
+      this.tweens.add({
+        targets: g,
+        x: x + dir * (60 + Math.abs(dir) * 20),
+        y: y - 40,
+        angle: dir * 140,
+        alpha: 0,
+        duration: 380,
+        ease: 'Quad.easeOut',
+        onComplete: () => g.destroy(),
+      });
+    }
   }
 
   private startFlip(p: number): void {
@@ -531,6 +561,7 @@ export class GameScene extends Phaser.Scene {
     if (targets.length === 0) return;
     this.flipping = true;
     this.flippedOnce = true;
+    sfx.play('flip_whoosh');
     this.gauge.hide();
     for (const e of targets) e.outcome = judgeFlip(e.cooking.state, p);
 
@@ -558,6 +589,8 @@ export class GameScene extends Phaser.Scene {
       case 'CLEAN':
         e.flipped = true;
         e.scaleX = FLIP_ANIM.squashScaleX;
+        sfx.play('land_clean');
+        this.cameras.main.shake(50, 0.0016); // 착지 반동 (M6 게임필)
         this.tweens.addCounter({
           from: FLIP_ANIM.squashScaleX,
           to: 1,
@@ -568,20 +601,24 @@ export class GameScene extends Phaser.Scene {
       case 'HALF_FOLD':
         e.flipped = true;
         foldBlob(e.blob, FLIP_ANIM.foldScaleX);
+        sfx.play('land_fold');
         return false;
       case 'BURNT_FLIP':
         e.lost = true;
+        sfx.play('fly_off');
         this.flyOff(e);
         return true;
       case 'PROJECTILE':
         // RAW 뒤집기 = 발사체 → 앞 손님이 아이템 훔쳐 도주 (GDD §9 도난 연쇄)
         e.lost = true;
+        sfx.play('fly_off');
         this.flyOff(e);
         this.triggerItemSteal();
         return false;
       case 'FLEW_OFF':
       default:
         e.lost = true;
+        sfx.play('fly_off');
         this.flyOff(e);
         return false;
     }
@@ -641,9 +678,11 @@ export class GameScene extends Phaser.Scene {
         score = Math.max(0, score + SCORE.deduction.bulletHole * e.bulletHoles);
       scores.push(score);
       this.scorePopup.popup(e.blob.cx, e.blob.cy - 40, score);
+      this.serveFlight(e); // 후라이가 손님에게 날아간다 (M6 게임필)
       e.view.destroy();
       e.nightGlow?.destroy();
     }
+    sfx.play('serve');
     this.eggs = this.eggs.filter((e) => !ready.includes(e));
 
     // 손님 리액션 + 코인(기본급+팁) — GPGP식 1:1 응대 피드백 (ADR-0011)
@@ -652,12 +691,42 @@ export class GameScene extends Phaser.Scene {
     const earned = coinsForServe(scores);
     if (earned > 0) {
       this.earnedCoins += earned;
+      sfx.play('coin');
       this.coinPopup(this.pan.center.x, this.pan.center.y - 110, earned);
     }
 
     this.session.serveCurrent(scores);
     this.refreshStageUi();
     this.checkStatus();
+  }
+
+  /** 서빙 비행 — 미니 후라이 고스트가 맨 앞 손님에게 포물선으로 날아간다 (M6, 서빙당 1회 할당) */
+  private serveFlight(e: EggEntity): void {
+    const g = this.add.graphics().setDepth(DEPTH.queue + 3);
+    const r = 26;
+    g.fillStyle(this.skin?.whiteTint ?? PALETTE.white, 1);
+    g.fillEllipse(0, 0, r * 2, r * 1.3);
+    g.fillStyle(this.skin?.yolkFill ?? PALETTE.yolk, 1);
+    g.fillEllipse(0, 0, r * 0.8, r * 0.55);
+    const from = { x: e.blob.cx, y: e.blob.cy };
+    const to = {
+      x: DESIGN.width * QUEUE.xRatios[0]!,
+      y: DESIGN.height * QUEUE.yRatio + QUEUE.bodyH * 0.2,
+    };
+    g.setPosition(from.x, from.y);
+    this.tweens.addCounter({
+      from: 0,
+      to: 1,
+      duration: 460,
+      ease: 'Sine.easeIn',
+      onUpdate: (tw) => {
+        const t = tw.getValue() ?? 0;
+        const arc = -Math.sin(Math.PI * t) * 180; // 포물선
+        g.setPosition(from.x + (to.x - from.x) * t, from.y + (to.y - from.y) * t + arc);
+        g.setScale(1 - t * 0.55);
+      },
+      onComplete: () => g.destroy(),
+    });
   }
 
   /** 코인 획득 팝업 — 금색 "+N"이 떠오르며 사라진다 (서빙당 1회, per-frame 아님) */
@@ -684,6 +753,7 @@ export class GameScene extends Phaser.Scene {
   // ── 이벤트(방해꾼) ──
 
   private handleSpawn(inst: EventInstance): void {
+    sfx.play('telegraph');
     const view = this.enemyViewFor(inst);
     if (view) this.enemyViews.set(inst, view);
   }
@@ -722,6 +792,7 @@ export class GameScene extends Phaser.Scene {
     this.enemyViews.delete(inst);
     // 저격수 실패 시 구멍 수 = 증식 수 (직접 탭 함정으로 늘어남)
     const holes = view instanceof SniperView ? view.multiplier : 1;
+    sfx.play(result === 'success' ? 'event_success' : 'event_fail');
     const keys = result === 'success' ? inst.def.onSuccess : inst.def.onFail;
     for (const k of keys) this.runEffect(k, holes);
     view.playResolve(result, () => view.destroy());
@@ -781,6 +852,7 @@ export class GameScene extends Phaser.Scene {
       case 'fire_out':
         // 불 끄기 적 성공 (GDD §8.1 ⑦) — 불 꺼짐 + 가짜불 스티커 (조리 정지, 스토브 탭 재점화)
         this.fireOn = false;
+        sfx.play('fire_out');
         this.stove.setFire(false, true);
         this.cameras.main.flash(200, 120, 170, 255); // 차가운 플래시
         break;
@@ -801,6 +873,7 @@ export class GameScene extends Phaser.Scene {
     if (this.ended || this.smokeFailing) return;
     this.smokeFailing = true;
     this.session.forceFail('smoke');
+    sfx.play('sprinkler');
     new SprinklerView(this);
     this.cameras.main.flash(220, 150, 190, 255);
     this.time.delayedCall(1200, () => this.endStage());
@@ -824,6 +897,7 @@ export class GameScene extends Phaser.Scene {
     if (this.ended) return;
     this.ended = true;
     const cleared = this.session.status === 'CLEARED';
+    sfx.play(cleared ? 'stage_clear' : 'game_over');
     const avg = this.session.averageScore;
     const stars = starsFor(avg, this.stageDef.starThresholds);
 

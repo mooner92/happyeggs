@@ -26,6 +26,7 @@
 | 03 | 게임 시스템 (Game Systems) | 계란·익힘 FSM·뒤집기·채점·이벤트 시스템의 엔지니어링 설계 | [03-game-systems.md](03-game-systems.md) |
 | 04 | 테스트 (Testing) | Vitest 전략 — 순수 로직만, 렌더링 테스트 금지 | [04-testing.md](04-testing.md) |
 | 05 | 규약 (Conventions) | 개발 규약·브랜치·conventional commits·기여 가이드 | [05-conventions.md](05-conventions.md) |
+| 06 | 밸런스 시트 (Balance Sheet) | 밸런스 튜닝 시트 — `balance.ts` 전 상수 표 (읽기 전용) | [06-balance-sheet.md](06-balance-sheet.md) |
 | — | 결정 로그 (Decisions) | 미결 [DECISION] 목록 — GDD §16 + M0-1~5 | [DECISIONS.md](DECISIONS.md) |
 | — | ADR 인덱스 | 확정된 아키텍처 결정 기록 (0001~0008) | [adr/README.md](adr/README.md) |
 | — | 스펙 인덱스 (Specs) | SDD 프로세스·스펙 템플릿·마일스톤별 스펙 | [specs/README.md](specs/README.md) |

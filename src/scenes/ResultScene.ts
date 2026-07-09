@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { STAGES } from '../data/stages';
+import { sfx } from '../ui/audio';
 import { DEPTH, DESIGN, TEXT } from '../data/layout';
 import { css, PALETTE, RESULT_STYLE, SCORE_TEXT, WALL_GRADIENT, YOLK_STYLE } from '../data/palette';
 import type { FailReason, StageStatus } from '../systems/stage';
@@ -30,6 +31,7 @@ export class ResultScene extends Phaser.Scene {
   }
 
   create(data: ResultData): void {
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, () => sfx.unlock()); // 오디오 정책 해제 (M6)
     this.cameras.main.setBackgroundColor(PALETTE.bg);
     this.cameras.main.fadeIn(280, 0, 0, 0); // 부드러운 진입 (디자인 v1)
     const cx = DESIGN.width / 2;
@@ -142,7 +144,10 @@ export class ResultScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(DEPTH.hud)
       .setInteractive({ useHandCursor: true })
-      .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, onTap);
+      .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+        sfx.play('ui_tap');
+        onTap();
+      });
     // 탭 스쿼시 피드백
     t.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
       this.tweens.add({ targets: t, scale: 0.92, duration: 70, yoyo: true });
@@ -208,6 +213,7 @@ export class ResultScene extends Phaser.Scene {
           delay: 400 + i * 160,
           duration: 340,
           ease: 'Back.easeOut',
+          onStart: () => sfx.play('star'),
         });
       }
     }

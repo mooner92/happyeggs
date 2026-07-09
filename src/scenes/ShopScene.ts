@@ -18,6 +18,7 @@ import {
   type SaveData,
 } from '../systems/save';
 import { buySkin } from '../systems/shop';
+import { sfx } from '../ui/audio';
 
 /** 카드 그리드 표현 값 (px) — ResultScene 칩과 같은 계열의 인라인 표현 값 */
 const CARD = {
@@ -59,6 +60,7 @@ export class ShopScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, () => sfx.unlock()); // 오디오 정책 해제 (M6)
     // 저장소 어댑터 — 접근 실패 시 coins 0·기본 스킨으로 표시만 (ResultScene 패턴)
     try {
       this.storage = window.localStorage as unknown as KVStorage;
@@ -218,6 +220,7 @@ export class ShopScene extends Phaser.Scene {
       // 보유·미장착 → 장착 (저장소 없으면 표시만이므로 무시)
       if (!this.storage) return;
       this.save = equipSkin(this.storage, skin.id);
+      sfx.play('ui_tap');
       this.refresh();
       return;
     }
@@ -225,8 +228,10 @@ export class ShopScene extends Phaser.Scene {
     const bought = this.storage ? buySkin(this.storage, skin) : null;
     if (bought) {
       this.save = bought;
+      sfx.play('buy');
       this.refresh();
     } else {
+      sfx.play('denied');
       this.shakeCard(card, baseX);
     }
   }
@@ -259,6 +264,7 @@ export class ShopScene extends Phaser.Scene {
       .setDepth(DEPTH.hud)
       .setInteractive({ useHandCursor: true })
       .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+        sfx.play('ui_tap');
         this.tweens.add({ targets: t, scale: 0.92, duration: 70, yoyo: true });
         this.cameras.main.fadeOut(220, 0, 0, 0);
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
