@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { COUNTER_BAND, DEPTH, DESIGN, SERVE_BAR, WALL_TILE } from '../../data/layout';
-import { COUNTER_STYLE, KITCHEN_STYLE, WALL_GRADIENT } from '../../data/palette';
+import { COUNTER_STYLE, KITCHEN_STYLE, STRING_LIGHT, WALL_GRADIENT } from '../../data/palette';
 
 /**
  * 주방 무대 (구체화 패스) — 손님 서빙 바 · 타일 벽 · 조리 카운터의 3단 구조로
@@ -65,5 +65,43 @@ export class KitchenView {
     bar.fillRect(0, barTop, DESIGN.width, SERVE_BAR.lipPx * 3);
     bar.fillStyle(KITCHEN_STYLE.serveBarLip, 1);
     bar.fillRect(0, barTop, DESIGN.width, SERVE_BAR.lipPx);
+
+    // 스트링 라이트 (디자인 v2) — 벽 상단을 가로지르는 처진 전선 + 따뜻한 알전구
+    this.drawStringLights(scene, barBottom + 34);
+  }
+
+  /** 알전구 줄 — 2번 처지는 전선 위에 전구 7개 + soft-glow 후광 (정적 1회 드로우) */
+  private drawStringLights(scene: Phaser.Scene, y: number): void {
+    const g = scene.add.graphics().setDepth(DEPTH.item - 1);
+    const sag = 22; // 전선 처짐 깊이
+    const n = 7;
+    g.lineStyle(3, STRING_LIGHT.wire, 0.9);
+    // 전선 — 반 사인파 2굽이로 처진 곡선을 폴리라인 근사
+    g.beginPath();
+    const seg = 28;
+    for (let i = 0; i <= seg; i++) {
+      const t = i / seg;
+      const px = DESIGN.width * t;
+      const py = y + Math.abs(Math.sin(t * Math.PI * 2)) * sag;
+      if (i === 0) g.moveTo(px, py);
+      else g.lineTo(px, py);
+    }
+    g.strokePath();
+    // 전구 — 전선 위 등간격, 소켓 + 알 + 후광
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n;
+      const bx = DESIGN.width * t;
+      const by = y + Math.abs(Math.sin(t * Math.PI * 2)) * sag;
+      scene.add
+        .image(bx, by + 14, 'soft-glow')
+        .setDisplaySize(64, 64)
+        .setTint(STRING_LIGHT.glow)
+        .setAlpha(0.28)
+        .setDepth(DEPTH.item - 1);
+      g.fillStyle(STRING_LIGHT.wire, 1);
+      g.fillRect(bx - 3, by, 6, 7); // 소켓
+      g.fillStyle(STRING_LIGHT.bulb, 1);
+      g.fillCircle(bx, by + 14, 7); // 알전구
+    }
   }
 }

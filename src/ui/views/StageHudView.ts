@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import { COIN_HUD, DEPTH, DESIGN, STAGE_HUD, TEXT } from '../../data/layout';
+import { COIN_HUD, DEPTH, DESIGN, FONT, STAGE_HUD, TEXT } from '../../data/layout';
 import { COIN_STYLE, STAGE_HUD_TEXT, css } from '../../data/palette';
 import { drawEggIcon } from './eggIcon';
 
 /**
  * 스테이지 HUD (GDD §4) — 계란 재고(계란 아이콘 ×N)·코인 지갑·서빙 평균. 상단 중앙, 항상 표시.
- * 숫자는 ASCII만 사용(한글 폰트 미탑재 두부 방지, [ADR-0009]·[M0 §12]).
+ * 텍스트는 한글 + Jua 폰트 (디자인 v2 — × 글리프 포함 서브셋 self-host).
  */
 export class StageHudView {
   private readonly g: Phaser.GameObjects.Graphics;
@@ -20,19 +20,19 @@ export class StageHudView {
     this.g = scene.add.graphics().setDepth(DEPTH.hud);
     // 재고 아이콘은 중앙 왼쪽, 텍스트로 개수. 코인은 오른쪽. 평균은 그 아래.
     this.stockText = scene.add
-      .text(cx - 40, y, '×0', { fontFamily: 'monospace', fontSize: TEXT.buttonSize, color: STAGE_HUD_TEXT.normal })
+      .text(cx - 40, y, '×0', { fontFamily: FONT.ui, fontSize: TEXT.buttonSize, color: STAGE_HUD_TEXT.normal })
       .setOrigin(0, 0.5)
       .setDepth(DEPTH.hud);
     this.coinText = scene.add
       .text(cx + COIN_HUD.dxFromCenter + COIN_HUD.iconR + 8, y, '0', {
-        fontFamily: 'monospace',
+        fontFamily: FONT.ui,
         fontSize: TEXT.buttonSize,
         color: css(COIN_STYLE.fill),
       })
       .setOrigin(0, 0.5)
       .setDepth(DEPTH.hud);
     this.avgText = scene.add
-      .text(cx, y + 40, '', { fontFamily: 'monospace', fontSize: TEXT.hudSize, color: STAGE_HUD_TEXT.normal })
+      .text(cx, y + 40, '', { fontFamily: FONT.ui, fontSize: TEXT.hudSize, color: STAGE_HUD_TEXT.normal })
       .setOrigin(0.5, 0.5)
       .setDepth(DEPTH.hud);
     this.drawIcons(cx, y);
@@ -63,7 +63,7 @@ export class StageHudView {
     this.stockText.setColor(stock <= 1 ? STAGE_HUD_TEXT.low : STAGE_HUD_TEXT.normal);
     this.coinText.setText(`${coins}`);
     const withAvg = servedCount > 0;
-    this.avgText.setText(withAvg ? `avg ${average.toFixed(3)}` : '');
+    this.avgText.setText(withAvg ? `평균 ${average.toFixed(3)}` : '');
     if (withAvg !== this.lastWithAvg) {
       this.lastWithAvg = withAvg;
       this.drawIcons(DESIGN.width * STAGE_HUD.xRatio, DESIGN.height * STAGE_HUD.yRatio, withAvg);

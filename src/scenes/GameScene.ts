@@ -9,6 +9,7 @@ import {
   DOUBLE_TAP_MS,
   DRAG_CUT_PX,
   FLIP_ANIM,
+  FONT,
   HINT,
   QUEUE,
   SERVE_SWIPE_PX,
@@ -311,7 +312,7 @@ export class GameScene extends Phaser.Scene {
     btnChip.lineStyle(2, 0xffffff, 0.07);
     btnChip.strokeRoundedRect(btnPos.x - 186, btnPos.y - 12, 200, 56, 16);
     this.add
-      .text(btnPos.x, btnPos.y, 'RESULT ▸', { fontSize: TEXT.buttonSize, color: HUD_TEXT.normal })
+      .text(btnPos.x, btnPos.y, '결과 ▸', { fontFamily: FONT.ui, fontSize: TEXT.buttonSize, color: HUD_TEXT.normal })
       .setOrigin(1, 0)
       .setDepth(1000)
       .setInteractive({ useHandCursor: true })
@@ -733,7 +734,7 @@ export class GameScene extends Phaser.Scene {
   private coinPopup(x: number, y: number, n: number): void {
     const t = this.add
       .text(x, y, `+${n}`, {
-        fontFamily: 'monospace',
+        fontFamily: FONT.ui,
         fontSize: TEXT.buttonSize,
         color: '#f5c542',
         fontStyle: 'bold',

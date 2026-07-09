@@ -10,7 +10,7 @@ export type CookStateKey = 'RAW' | 'SET' | 'PERFECT_WINDOW' | 'OVERDONE' | 'BURN
 
 /** 기본 팔레트 — 따뜻한 주방 톤 (Bacon 레퍼런스) */
 export const PALETTE = {
-  bg: 0x24201d,
+  bg: 0x2e2622,
   pan: 0x40403f,
   panSheen: 0x5a5a58,
   panRim: 0x121110,
@@ -19,7 +19,7 @@ export const PALETTE = {
 } as const;
 
 /** 배경 벽 그라데이션(위→아래) */
-export const WALL_GRADIENT = { top: 0x2c2622, bottom: 0x1c1815 } as const;
+export const WALL_GRADIENT = { top: 0x55402f, bottom: 0x38291f } as const;
 
 export interface EggStyle {
   readonly fill: number;
@@ -49,16 +49,16 @@ export const HAND_STYLE = { fill: 0xf5b63f, line: 0xd9902a } as const;
 export const SPATULA_STYLE = { blade: 0xb9bcc2, bladeEdge: 0x6b6e74, handle: 0x9a7b4a } as const;
 
 /** 주방 카운터 — 따뜻한 나무 톤 (GDD §4 [주방 카운터]) */
-export const COUNTER_STYLE = { front: 0x3b322a, top: 0x574636, lip: 0x6b573f } as const;
+export const COUNTER_STYLE = { front: 0x5a4432, top: 0x75593d, lip: 0x94714b } as const;
 
 /** 주방 무대 (구체화 패스) — 타일 벽·서빙 바·아이템 거치판 */
 export const KITCHEN_STYLE = {
   tileLine: 0x14100c, // 벽 타일 줄눈 (알파로 은은하게)
   ceilingShade: 0x000000,
-  serveBarTop: 0x6b573f,
-  serveBarFront: 0x453626,
-  serveBarLip: 0x86704f,
-  plaque: 0x4a3a28, // 아이템 거치판(나무)
+  serveBarTop: 0x8a6a45,
+  serveBarFront: 0x5e4730,
+  serveBarLip: 0xab8657,
+  plaque: 0x63492e, // 아이템 거치판(나무)
   plaqueEdge: 0x2b2117,
   hook: 0x9a9da3, // 금속 걸이
 } as const;
@@ -86,6 +86,9 @@ export const EMOTE_STYLE = {
 
 /** 코인 (GDD §12 재화) */
 export const COIN_STYLE = { fill: 0xf5c542, edge: 0xb8862a, shine: 0xfff0c2 } as const;
+
+/** 스트링 라이트 (디자인 v2) — 벽 상단을 가로지르는 알전구 */
+export const STRING_LIGHT = { wire: 0x241a12, bulb: 0xffd27a, glow: 0xffb85c } as const;
 
 /** 야간/열화상 (GDD §8.1 ⑦, M5) — 남색 오버레이 + 뜨거운 것만 밝게 */
 export const NIGHT_STYLE = {

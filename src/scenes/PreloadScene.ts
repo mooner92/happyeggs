@@ -24,6 +24,9 @@ export class PreloadScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.scene.start('Game');
+    // 타이틀 화면으로 (디자인 v2). QA/딥링크(?stage=·?spawn=·?scene=game)는 바로 게임
+    const p = new URLSearchParams(window.location.search);
+    const direct = p.has('stage') || p.has('spawn') || p.get('scene') === 'game';
+    this.scene.start(direct ? 'Game' : 'Title');
   }
 }

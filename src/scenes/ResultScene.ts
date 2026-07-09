@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { STAGES } from '../data/stages';
 import { sfx } from '../ui/audio';
-import { DEPTH, DESIGN, TEXT } from '../data/layout';
+import { DEPTH, DESIGN, FONT, TEXT } from '../data/layout';
 import { css, PALETTE, RESULT_STYLE, SCORE_TEXT, WALL_GRADIENT, YOLK_STYLE } from '../data/palette';
 import type { FailReason, StageStatus } from '../systems/stage';
 import type { Stars } from '../systems/stars';
@@ -23,7 +23,7 @@ interface ResultData {
 
 /**
  * 결과 화면 (GDD §11) — 접시 위 후라이 배열 + 별점 팝인 + 점수 카운트업 + PNG 공유.
- * placeholder UI는 ASCII만 (한글 폰트 두부 방지, ADR-0009).
+ * UI 텍스트는 한글 + Jua 폰트 (디자인 v2 — 서브셋 self-host).
  */
 export class ResultScene extends Phaser.Scene {
   constructor() {
@@ -50,12 +50,13 @@ export class ResultScene extends Phaser.Scene {
 
     // 타이틀 (그림자로 무게감)
     const title = cleared
-      ? 'STAGE CLEAR!'
+      ? '스테이지 클리어!'
       : data.status === 'FAILED'
-        ? `STAGE FAILED (${data.reason ?? 'quit'})`
-        : 'RESULT';
+        ? `실패... (${data.reason ?? 'quit'})`
+        : '결과';
     this.add
       .text(cx, DESIGN.height * 0.13, title, {
+        fontFamily: FONT.ui,
         fontSize: TEXT.resultSize,
         color: cleared ? SCORE_TEXT.good : SCORE_TEXT.bad,
         fontStyle: 'bold',
@@ -71,8 +72,8 @@ export class ResultScene extends Phaser.Scene {
 
     // 점수 카운트업
     const scoreText = this.add
-      .text(cx, DESIGN.height * 0.71, 'avg 0.000', {
-        fontFamily: 'monospace',
+      .text(cx, DESIGN.height * 0.71, '평균 0.000', {
+        fontFamily: FONT.ui,
         fontSize: TEXT.resultSize,
         color: css(PALETTE.white),
       })
@@ -83,14 +84,14 @@ export class ResultScene extends Phaser.Scene {
       delay: 250,
       duration: 900,
       ease: 'Cubic.easeOut',
-      onUpdate: (tw) => scoreText.setText(`avg ${(tw.getValue() ?? 0).toFixed(3)}`),
+      onUpdate: (tw) => scoreText.setText(`평균 ${(tw.getValue() ?? 0).toFixed(3)}`),
     });
     this.add
       .text(
         cx,
         DESIGN.height * 0.76,
-        `best ${(data.best ?? avg).toFixed(3)}   served ${data.served ?? 0}   failed ${data.failed ?? 0}`,
-        { fontFamily: 'monospace', fontSize: TEXT.hudSize, color: css(RESULT_STYLE.plateShade) },
+        `최고 ${(data.best ?? avg).toFixed(3)}   서빙 ${data.served ?? 0}   실패 ${data.failed ?? 0}`,
+        { fontFamily: FONT.ui, fontSize: TEXT.hudSize, color: css(RESULT_STYLE.plateShade) },
       )
       .setOrigin(0.5);
 
@@ -100,8 +101,8 @@ export class ResultScene extends Phaser.Scene {
         .text(
           cx,
           DESIGN.height * 0.805,
-          `+${data.coinsEarned ?? 0} coins   (wallet ${data.coinsTotal ?? 0})`,
-          { fontFamily: 'monospace', fontSize: TEXT.hudSize, color: '#f5c542' },
+          `+${data.coinsEarned ?? 0} 코인   (지갑 ${data.coinsTotal ?? 0})`,
+          { fontFamily: FONT.ui, fontSize: TEXT.hudSize, color: '#f5c542' },
         )
         .setOrigin(0.5);
     }
@@ -109,16 +110,16 @@ export class ResultScene extends Phaser.Scene {
     // 버튼 2줄 (칩 배경): [SHARE][RETRY] / [SHOP][NEXT(클리어+다음 스테이지 존재 시)]
     const y1 = DESIGN.height * 0.855;
     const y2 = DESIGN.height * 0.935;
-    this.button(cx - 130, y1, 'SHARE', SCORE_TEXT.good, () => this.shareResult(stageId, avg));
-    this.button(cx + 130, y1, 'RETRY ▸', css(PALETTE.white), () =>
+    this.button(cx - 130, y1, '공유', SCORE_TEXT.good, () => this.shareResult(stageId, avg));
+    this.button(cx + 130, y1, '다시 ▸', css(PALETTE.white), () =>
       this.fadeTo('Game', { stageId }),
     );
-    this.button(cx - 130, y2, 'SHOP', '#f5c542', () => this.fadeTo('Shop'));
+    this.button(cx - 130, y2, '상점', '#f5c542', () => this.fadeTo('Shop'));
     // 다음 스테이지 진행 (M5) — 클리어 시에만
     const nextIdx = STAGES.findIndex((s) => s.id === stageId) + 1;
     const next = cleared && nextIdx > 0 ? STAGES[nextIdx] : undefined;
     if (next) {
-      this.button(cx + 130, y2, 'NEXT ▸', SCORE_TEXT.good, () =>
+      this.button(cx + 130, y2, '다음 ▸', SCORE_TEXT.good, () =>
         this.fadeTo('Game', { stageId: next.id }),
       );
     }
@@ -140,7 +141,7 @@ export class ResultScene extends Phaser.Scene {
     chip.lineStyle(2, 0xffffff, 0.09);
     chip.strokeRoundedRect(x - 105, y - 32, 210, 64, 20);
     const t = this.add
-      .text(x, y, label, { fontSize: TEXT.buttonSize, color })
+      .text(x, y, label, { fontFamily: FONT.ui, fontSize: TEXT.buttonSize, color })
       .setOrigin(0.5)
       .setDepth(DEPTH.hud)
       .setInteractive({ useHandCursor: true })

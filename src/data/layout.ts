@@ -34,6 +34,12 @@ export const TEXT = {
   buttonSize: '28px',
 } as const;
 
+/** 게임 폰트 (디자인 v2) — Jua(OFL, 서브셋 self-host). 숫자 정렬이 중요한 곳만 monospace 유지 */
+export const FONT = {
+  ui: 'Jua, sans-serif',
+  mono: 'monospace',
+} as const;
+
 /** 3/4 원근 — 팬·계란을 세로로 눌러 살짝 누운(비스듬히 본) 느낌을 준다 (Bacon 톤). */
 export const PERSPECTIVE = {
   /** 세로 압축 비율(1=정원, 작을수록 눕는다) */

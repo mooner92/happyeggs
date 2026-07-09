@@ -9,7 +9,7 @@ export default tseslint.config(
   prettier,
   {
     // QA 하네스는 Node 스크립트 — Node 전역 허용 (브라우저 소스 아님)
-    files: ['qa/**/*.mjs', 'qa/**/*.js'],
+    files: ['qa/**/*.mjs', 'qa/**/*.js', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: { process: 'readonly', console: 'readonly', setTimeout: 'readonly' },
     },

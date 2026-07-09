@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, DESIGN, TEXT } from '../data/layout';
+import { DEPTH, DESIGN, FONT, TEXT } from '../data/layout';
 import {
   COIN_STYLE,
   css,
@@ -47,7 +47,7 @@ function fallbackSave(): SaveData {
 /**
  * 스킨 상점 (GDD §12 BM — 코스메틱 스킨, ADR-0011 코인 구매).
  * SKINS를 2열 카드 그리드로 표시 — 구매/장착은 systems/shop·save에 위임하고
- * 이 씬은 상태 변화 시에만 다시 그린다(per-frame 재드로우 없음). UI 텍스트는 ASCII만 (ADR-0009).
+ * 이 씬은 상태 변화 시에만 다시 그린다(per-frame 재드로우 없음). UI 텍스트는 한글 + Jua (디자인 v2).
  */
 export class ShopScene extends Phaser.Scene {
   private storage: KVStorage | null = null;
@@ -85,7 +85,8 @@ export class ShopScene extends Phaser.Scene {
 
     // 타이틀 (그림자로 무게감)
     this.add
-      .text(cx, DESIGN.height * 0.09, 'SKIN SHOP', {
+      .text(cx, DESIGN.height * 0.09, '스킨 상점', {
+        fontFamily: FONT.ui,
         fontSize: TEXT.resultSize,
         color: css(PALETTE.white),
         fontStyle: 'bold',
@@ -110,7 +111,7 @@ export class ShopScene extends Phaser.Scene {
     this.drawCoinIcon(g, x, y, 14);
     this.coinText = this.add
       .text(x + 26, y, `${this.save.coins}`, {
-        fontFamily: 'monospace',
+        fontFamily: FONT.ui,
         fontSize: TEXT.buttonSize,
         color: css(COIN_STYLE.fill),
       })
@@ -175,6 +176,7 @@ export class ShopScene extends Phaser.Scene {
     card.add(
       this.add
         .text(0, 22, skin.name, {
+          fontFamily: FONT.ui,
           fontSize: TEXT.buttonSize,
           color: css(PALETTE.white),
           fontStyle: 'bold',
@@ -182,14 +184,14 @@ export class ShopScene extends Phaser.Scene {
         .setOrigin(0.5),
     );
 
-    // 상태줄 — 미보유: 금화+가격 / 보유: OWNED / 장착 중: EQUIPPED
+    // 상태줄 — 미보유: 금화+가격 / 보유: 보유중 / 장착 중: 장착중
     const sy = CARD.h / 2 - 42;
     if (!owned) {
       this.drawCoinIcon(g, -30, sy, 12);
       card.add(
         this.add
           .text(-12, sy, `${skin.price}`, {
-            fontFamily: 'monospace',
+            fontFamily: FONT.ui,
             fontSize: TEXT.buttonSize,
             color: css(COIN_STYLE.fill),
           })
@@ -198,8 +200,8 @@ export class ShopScene extends Phaser.Scene {
     } else {
       card.add(
         this.add
-          .text(0, sy, equipped ? 'EQUIPPED' : 'OWNED', {
-            fontFamily: 'monospace',
+          .text(0, sy, equipped ? '장착중' : '보유중', {
+            fontFamily: FONT.ui,
             fontSize: TEXT.hudSize,
             color: equipped ? SCORE_TEXT.good : SCORE_TEXT.normal,
           })
@@ -259,7 +261,7 @@ export class ShopScene extends Phaser.Scene {
     chip.lineStyle(2, 0xffffff, 0.09);
     chip.strokeRoundedRect(x - 105, y - 32, 210, 64, 20);
     const t = this.add
-      .text(x, y, 'PLAY >', { fontSize: TEXT.buttonSize, color: SCORE_TEXT.good })
+      .text(x, y, '시작 ▸', { fontFamily: FONT.ui, fontSize: TEXT.buttonSize, color: SCORE_TEXT.good })
       .setOrigin(0.5)
       .setDepth(DEPTH.hud)
       .setInteractive({ useHandCursor: true })
