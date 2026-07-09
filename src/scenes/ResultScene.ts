@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DEPTH, DESIGN, TEXT } from '../data/layout';
-import { css, PALETTE, RESULT_STYLE, SCORE_TEXT, YOLK_STYLE } from '../data/palette';
+import { css, PALETTE, RESULT_STYLE, SCORE_TEXT, WALL_GRADIENT, YOLK_STYLE } from '../data/palette';
 import type { FailReason, StageStatus } from '../systems/stage';
 import type { Stars } from '../systems/stars';
 
@@ -30,12 +30,22 @@ export class ResultScene extends Phaser.Scene {
 
   create(data: ResultData): void {
     this.cameras.main.setBackgroundColor(PALETTE.bg);
+    this.cameras.main.fadeIn(280, 0, 0, 0); // 부드러운 진입 (디자인 v1)
     const cx = DESIGN.width / 2;
     const cleared = data.status === 'CLEARED';
     const avg = data.average ?? 0;
     const stageId = data.stageId ?? 'stage';
 
-    // 타이틀
+    // 배경 — 주방과 같은 벽 그라데이션 + 비네트 (디자인 v1, 씬 톤 통일)
+    const bg = this.add.graphics().setDepth(-10);
+    bg.fillGradientStyle(WALL_GRADIENT.top, WALL_GRADIENT.top, PALETTE.bg, PALETTE.bg, 1);
+    bg.fillRect(0, 0, DESIGN.width, DESIGN.height);
+    this.add
+      .image(cx, DESIGN.height / 2, 'vignette')
+      .setDisplaySize(DESIGN.width, DESIGN.height)
+      .setDepth(500);
+
+    // 타이틀 (그림자로 무게감)
     const title = cleared
       ? 'STAGE CLEAR!'
       : data.status === 'FAILED'
@@ -47,7 +57,8 @@ export class ResultScene extends Phaser.Scene {
         color: cleared ? SCORE_TEXT.good : SCORE_TEXT.bad,
         fontStyle: 'bold',
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setShadow(0, 4, '#000000', 8, false, true);
 
     // 접시 + 후라이 배열
     this.drawPlate(cx, DESIGN.height * 0.38, data.scores ?? []);
@@ -92,22 +103,35 @@ export class ResultScene extends Phaser.Scene {
         .setOrigin(0.5);
     }
 
-    // 버튼: SHARE / RETRY
+    // 버튼: SHARE / RETRY (칩 배경)
     this.button(cx - 130, DESIGN.height * 0.88, 'SHARE', SCORE_TEXT.good, () =>
       this.shareResult(stageId, avg),
     );
-    this.button(cx + 130, DESIGN.height * 0.88, 'RETRY ▸', css(PALETTE.white), () =>
-      this.scene.start('Game'),
-    );
+    this.button(cx + 130, DESIGN.height * 0.88, 'RETRY ▸', css(PALETTE.white), () => {
+      this.cameras.main.fadeOut(220, 0, 0, 0);
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
+        this.scene.start('Game'),
+      );
+    });
   }
 
   private button(x: number, y: number, label: string, color: string, onTap: () => void): void {
-    this.add
+    // 칩 배경 — 라운드 반투명 (디자인 v1, 탭 타겟을 도형으로 보여준다)
+    const chip = this.add.graphics().setDepth(DEPTH.hud - 1);
+    chip.fillStyle(0x000000, 0.35);
+    chip.fillRoundedRect(x - 105, y - 32, 210, 64, 20);
+    chip.lineStyle(2, 0xffffff, 0.09);
+    chip.strokeRoundedRect(x - 105, y - 32, 210, 64, 20);
+    const t = this.add
       .text(x, y, label, { fontSize: TEXT.buttonSize, color })
       .setOrigin(0.5)
       .setDepth(DEPTH.hud)
       .setInteractive({ useHandCursor: true })
       .on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, onTap);
+    // 탭 스쿼시 피드백
+    t.on(Phaser.Input.Events.GAMEOBJECT_POINTER_DOWN, () => {
+      this.tweens.add({ targets: t, scale: 0.92, duration: 70, yoyo: true });
+    });
   }
 
   private drawPlate(cx: number, cy: number, scores: number[]): void {

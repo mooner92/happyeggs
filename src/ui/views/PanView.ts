@@ -50,18 +50,23 @@ export class PanView {
     g.fillEllipse(cx, cy + wall, rimRx * 2, rimRy * 2);
     // 림 윗면
     g.fillEllipse(cx, cy, rimRx * 2, rimRy * 2);
-    // 조리면
-    g.fillStyle(PALETTE.pan, 1);
-    g.fillEllipse(cx, cy, this.radius * 2, this.ry * 2);
-    // 조리면 안쪽 미묘한 명암(가장자리 살짝 밝게)
-    g.lineStyle(6, PALETTE.panSheen, 0.35);
-    g.strokeEllipse(cx, cy, this.radius * 1.82, this.ry * 1.82);
+    // 림 상단 하이라이트 — 왼쪽 위 빛을 받는 금속 테 (디자인 v1)
+    g.lineStyle(4, PALETTE.panSheen, 0.5);
+    g.beginPath();
+    g.arc(cx, cy, (rimRx + this.radius) / 2, Math.PI * 0.95, Math.PI * 1.75);
+    g.strokePath();
+
+    // 조리면 — 방사 그라데이션 + 브러시드 링 텍스처를 타원으로 눌러서 (디자인 v1)
+    scene.add
+      .image(cx, cy, 'pan-surface')
+      .setDisplaySize(this.radius * 2, this.ry * 2)
+      .setDepth(DEPTH.pan);
 
     // 조리면 광택 — 왼쪽 위에서 오는 빛 (soft-glow 스프라이트)
     scene.add
       .image(cx - this.radius * 0.28, cy - this.ry * 0.42, 'soft-glow')
       .setDisplaySize(this.radius * 1.5, this.ry * 1.1)
-      .setAlpha(0.12)
+      .setAlpha(0.14)
       .setDepth(DEPTH.pan);
   }
 

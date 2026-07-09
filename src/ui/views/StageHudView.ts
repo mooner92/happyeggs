@@ -12,6 +12,7 @@ export class StageHudView {
   private readonly stockText: Phaser.GameObjects.Text;
   private readonly coinText: Phaser.GameObjects.Text;
   private readonly avgText: Phaser.GameObjects.Text;
+  private lastWithAvg = false;
 
   constructor(scene: Phaser.Scene) {
     const y = DESIGN.height * STAGE_HUD.yRatio;
@@ -37,8 +38,15 @@ export class StageHudView {
     this.drawIcons(cx, y);
   }
 
-  private drawIcons(cx: number, y: number): void {
+  private drawIcons(cx: number, y: number, withAvg = false): void {
     this.g.clear();
+    // HUD 칩 배경 (디자인 v1) — 반투명 라운드 바 (평균 표시 시 2줄 높이)
+    const chipW = 340;
+    const chipH = withAvg ? 96 : 62;
+    this.g.fillStyle(0x000000, 0.32);
+    this.g.fillRoundedRect(cx - chipW / 2, y - 31, chipW, chipH, 22);
+    this.g.lineStyle(2, 0xffffff, 0.06);
+    this.g.strokeRoundedRect(cx - chipW / 2, y - 31, chipW, chipH, 22);
     drawEggIcon(this.g, cx - 66, y, STAGE_HUD.eggIconR);
     // 코인 아이콘 — 금화 (원 + 테두리 + 광점)
     const coinX = cx + COIN_HUD.dxFromCenter;
@@ -54,7 +62,12 @@ export class StageHudView {
     this.stockText.setText(`×${stock}`);
     this.stockText.setColor(stock <= 1 ? STAGE_HUD_TEXT.low : STAGE_HUD_TEXT.normal);
     this.coinText.setText(`${coins}`);
-    this.avgText.setText(servedCount > 0 ? `avg ${average.toFixed(3)}` : '');
+    const withAvg = servedCount > 0;
+    this.avgText.setText(withAvg ? `avg ${average.toFixed(3)}` : '');
+    if (withAvg !== this.lastWithAvg) {
+      this.lastWithAvg = withAvg;
+      this.drawIcons(DESIGN.width * STAGE_HUD.xRatio, DESIGN.height * STAGE_HUD.yRatio, withAvg);
+    }
   }
 
   destroy(): void {

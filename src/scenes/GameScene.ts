@@ -173,10 +173,16 @@ export class GameScene extends Phaser.Scene {
     this.stageDef = findStage(params.get('stage') ?? '') ?? STAGES[0]!;
     const def = this.stageDef;
 
+    this.cameras.main.fadeIn(280, 0, 0, 0); // 부드러운 씬 진입 (디자인 v1)
     new KitchenView(this);
     this.pan = new PanView(this);
     this.stove = new StoveView(this, def.heatSource); // 팬 다음 생성 — 불꽃이 림 위로
     this.hands = new HandsView(this);
+    // 비네트 — 가장자리 어둡게, 시선을 팬으로 (게임플레이 위, HUD 아래)
+    this.add
+      .image(DESIGN.width / 2, DESIGN.height / 2, 'vignette')
+      .setDisplaySize(DESIGN.width, DESIGN.height)
+      .setDepth(DEPTH.gauge - 2);
     this.gauge = new PowerGaugeView(this);
     this.hint = new HintView(this);
     this.scorePopup = new ScorePopupView(this);
@@ -265,6 +271,12 @@ export class GameScene extends Phaser.Scene {
     }
 
     const btnPos = toPx(ANCHORS.resultButton);
+    // 버튼 칩 배경 (디자인 v1 — 탭 타겟 시각화). 텍스트 좌표는 유지(히트 영역 불변)
+    const btnChip = this.add.graphics().setDepth(DEPTH.hud - 1);
+    btnChip.fillStyle(0x000000, 0.32);
+    btnChip.fillRoundedRect(btnPos.x - 186, btnPos.y - 12, 200, 56, 16);
+    btnChip.lineStyle(2, 0xffffff, 0.07);
+    btnChip.strokeRoundedRect(btnPos.x - 186, btnPos.y - 12, 200, 56, 16);
     this.add
       .text(btnPos.x, btnPos.y, 'RESULT ▸', { fontSize: TEXT.buttonSize, color: HUD_TEXT.normal })
       .setOrigin(1, 0)
@@ -291,7 +303,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private refreshStageUi(): void {
-    this.queueView.render(this.session.visibleOrders);
+    // 절대 손님 번호 — 큐가 줄어도 색·액세서리 정체성 유지 (디자인 v1)
+    const processed = this.stageDef.customers - this.session.customersLeft;
+    this.queueView.render(this.session.visibleOrders, processed);
     this.stageHud.render(
       this.session.remainingStock,
       this.session.servedScores.length,
@@ -771,7 +785,8 @@ export class GameScene extends Phaser.Scene {
       /* localStorage 미지원 환경 무시 */
     }
 
-    this.scene.start('Result', {
+    // 페이드 아웃 후 결과 화면 (디자인 v1 — 씬 전환 연출)
+    const data = {
       status: this.session.status,
       reason: this.session.failReason,
       stageId: this.stageDef.id,
@@ -783,7 +798,11 @@ export class GameScene extends Phaser.Scene {
       failed: this.session.failedCount,
       coinsEarned: this.earnedCoins,
       coinsTotal,
-    });
+    };
+    this.cameras.main.fadeOut(240, 0, 0, 0);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
+      this.scene.start('Result', data),
+    );
   }
 
   override update(_time: number, deltaMs: number): void {
@@ -814,6 +833,8 @@ export class GameScene extends Phaser.Scene {
         { offsetY: egg.offsetY, scaleX: egg.scaleX },
         egg.yolkBroken,
         egg.bulletHoles,
+        egg.cooking.doneness,
+        !egg.flipped && !egg.lost && !egg.frozen,
       );
       // 지글지글 스팀 — 익는 중(SET~OVERDONE)일 때 위로 피어오른다
       if (emitSteam && !egg.flipped && !egg.lost && !egg.frozen) {

@@ -73,7 +73,10 @@ export class QueueView {
     }
   }
 
-  render(orders: readonly Order[]): void {
+  /**
+   * @param baseIndex 스테이지 내 절대 손님 번호(처리된 수) — 큐가 줄어도 색·액세서리 정체성 유지 (디자인 v1)
+   */
+  render(orders: readonly Order[], baseIndex = 0): void {
     const g = this.g;
     g.clear();
     const y = DESIGN.height * QUEUE.yRatio;
@@ -83,7 +86,7 @@ export class QueueView {
     for (let i = count - 1; i >= 0; i--) {
       const cx = DESIGN.width * QUEUE.xRatios[i]!;
       const scale = QUEUE.scales[i]!;
-      this.drawCustomer(g, cx, y, scale, i);
+      this.drawCustomer(g, cx, y, scale, baseIndex + i);
     }
     // 맨 앞 손님 말풍선(주문)
     if (count > 0) {
@@ -125,6 +128,73 @@ export class QueueView {
     g.beginPath();
     g.arc(cx, eyeY + h * 0.06, w * 0.16, Phaser.Math.DegToRad(20), Phaser.Math.DegToRad(160));
     g.strokePath();
+    // 개성 액세서리 (디자인 v1) — 절대 번호 해시로 결정(같은 손님은 계속 같은 모습)
+    this.drawAccessories(g, cx, cy, w, h, scale, eyeDx, eyeY, index);
+  }
+
+  /** 모자·안경 — index 해시로 조합 (없음 포함, Bacon 톤 단순 도형) */
+  private drawAccessories(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    cy: number,
+    w: number,
+    h: number,
+    scale: number,
+    eyeDx: number,
+    eyeY: number,
+    index: number,
+  ): void {
+    const hash = (index * 2654435761) >>> 0;
+    const hat = hash % 4;
+    const eyewear = (hash >> 3) % 3;
+    const accent = CUSTOMER_STYLE.bodies[(index + 2) % CUSTOMER_STYLE.bodies.length]!;
+    const headY = cy - h * 0.42;
+
+    // 모자
+    if (hat === 1) {
+      // 셰프 모자 — 흰 뭉게 + 밴드
+      g.fillStyle(0xf7f1e5, 1);
+      g.fillEllipse(cx, headY - h * 0.16, w * 0.62, h * 0.3);
+      g.fillEllipse(cx - w * 0.18, headY - h * 0.22, w * 0.3, h * 0.22);
+      g.fillEllipse(cx + w * 0.18, headY - h * 0.22, w * 0.3, h * 0.22);
+      g.fillRect(cx - w * 0.28, headY - h * 0.06, w * 0.56, h * 0.1);
+      g.lineStyle(3 * scale, CUSTOMER_STYLE.outline, 1);
+      g.strokeRect(cx - w * 0.28, headY - h * 0.06, w * 0.56, h * 0.1);
+    } else if (hat === 2) {
+      // 비니 — 색 돔 + 접힌 챙 + 방울
+      g.fillStyle(accent, 1);
+      g.beginPath();
+      g.arc(cx, headY, w * 0.34, Math.PI, 0, false);
+      g.closePath();
+      g.fillPath();
+      g.fillRect(cx - w * 0.34, headY - h * 0.03, w * 0.68, h * 0.08);
+      g.fillStyle(0xf7f1e5, 1);
+      g.fillCircle(cx, headY - w * 0.34, 6 * scale);
+    } else if (hat === 3) {
+      // 캡 — 돔 + 챙(오른쪽)
+      g.fillStyle(accent, 1);
+      g.beginPath();
+      g.arc(cx, headY, w * 0.32, Math.PI, 0, false);
+      g.closePath();
+      g.fillPath();
+      g.fillEllipse(cx + w * 0.3, headY, w * 0.36, h * 0.07);
+    }
+
+    // 안경류 (눈 위에 덧그림)
+    if (eyewear === 1) {
+      // 동그란 안경
+      g.lineStyle(3 * scale, CUSTOMER_STYLE.outline, 1);
+      g.strokeCircle(cx - eyeDx, eyeY, 9 * scale);
+      g.strokeCircle(cx + eyeDx, eyeY, 9 * scale);
+      g.lineBetween(cx - eyeDx + 9 * scale, eyeY, cx + eyeDx - 9 * scale, eyeY);
+    } else if (eyewear === 2) {
+      // 선글라스
+      g.fillStyle(CUSTOMER_STYLE.outline, 1);
+      g.fillRoundedRect(cx - eyeDx - 10 * scale, eyeY - 7 * scale, 20 * scale, 13 * scale, 4);
+      g.fillRoundedRect(cx + eyeDx - 10 * scale, eyeY - 7 * scale, 20 * scale, 13 * scale, 4);
+      g.lineStyle(3 * scale, CUSTOMER_STYLE.outline, 1);
+      g.lineBetween(cx - eyeDx + 10 * scale, eyeY - 2, cx + eyeDx - 10 * scale, eyeY - 2);
+    }
   }
 
   private drawBubble(
