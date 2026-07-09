@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- 모바일 웹 세로 9:16 — 더블탭 줌/핀치/바운스 차단 (GDD §2, M1 더블탭 입력 대비) -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <title>EGG FLIP (가제)</title>
+    <!-- 게임 폰트 Jua (OFL — fonts-src/OFL.txt) — 소스 사용 글자만 서브셋(npm run font:subset) -->
+    <link rel="preload" href="/happyeggs/fonts/jua.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      @font-face {
+        font-family: 'Jua';
+        src: url('/happyeggs/fonts/jua.woff2') format('woff2');
+        font-weight: 400;
+        font-display: swap;
+      }
+    </style>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100dvh;
+        overflow: hidden;
+        background: #1a1a1a;
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #game {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <script type="module" crossorigin src="/happyeggs/assets/index-CUF_Ayq5.js"></script>
+  </head>
+  <body>
+    <div id="game"></div>
+  </body>
+</html>
