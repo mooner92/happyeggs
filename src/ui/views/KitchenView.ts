@@ -102,6 +102,8 @@ export class KitchenView {
       g.fillRect(bx - 3, by, 6, 7); // 소켓
       g.fillStyle(STRING_LIGHT.bulb, 1);
       g.fillCircle(bx, by + 14, 7); // 알전구
+      g.lineStyle(3, 0x8a6a3a, 1);
+      g.strokeCircle(bx, by + 14, 7);
     }
   }
 }

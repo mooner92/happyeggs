@@ -183,7 +183,7 @@ export const PLAQUE = { w: 116, h: 116, r: 16 } as const;
 export const SERVE_BAR = { topRatio: 0.3, heightPx: 52, lipPx: 6 } as const;
 
 /** 벽 타일 — 줄눈 격자 (구체화 패스, 은은하게) */
-export const WALL_TILE = { rowPx: 96, colPx: 150, lineW: 3, alpha: 0.16 } as const;
+export const WALL_TILE = { rowPx: 96, colPx: 150, lineW: 3, alpha: 0.5 } as const;
 
 /** 스토브 불꽃 — 팬 하단 림을 따라 배치 (구체화 패스, 열원 데이터 주도) */
 export const STOVE = {

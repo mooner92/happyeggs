@@ -5,7 +5,6 @@ import {
   css,
   CUSTOMER_STYLE,
   PALETTE,
-  RESULT_STYLE,
   SCORE_TEXT,
   WALL_GRADIENT,
   YOLK_STYLE,
@@ -78,6 +77,7 @@ export class TitleScene extends Phaser.Scene {
     this.add
       .image(cx, DESIGN.height / 2, 'vignette')
       .setDisplaySize(DESIGN.width, DESIGN.height)
+      .setAlpha(0.5)
       .setDepth(500);
   }
 
@@ -96,7 +96,7 @@ export class TitleScene extends Phaser.Scene {
       .text(cx, DESIGN.height * TITLE.subYRatio, '완벽한 원에 도전!', {
         fontFamily: FONT.ui,
         fontSize: '28px',
-        color: css(PALETTE.white),
+        color: css(PALETTE.ink),
       })
       .setOrigin(0.5)
       .setShadow(0, 3, '#000000', 6, false, true);
@@ -165,7 +165,7 @@ export class TitleScene extends Phaser.Scene {
         .text(cx, y, `★ ${stars}   코인 ${save.coins}`, {
           fontFamily: FONT.ui,
           fontSize: TEXT.hudSize,
-          color: css(RESULT_STYLE.plateShade),
+          color: css(PALETTE.ink),
         })
         .setOrigin(0.5);
     } catch {
@@ -193,7 +193,7 @@ export class TitleScene extends Phaser.Scene {
     onTap: () => void,
   ): void {
     const chip = this.add.graphics().setDepth(DEPTH.hud - 1);
-    chip.fillStyle(0x000000, 0.35);
+    chip.fillStyle(0x4a3524, 0.92);
     chip.fillRoundedRect(x - w / 2, y - h / 2, w, h, 20);
     chip.lineStyle(2, 0xffffff, 0.09);
     chip.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 20);

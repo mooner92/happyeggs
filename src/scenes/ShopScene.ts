@@ -81,6 +81,7 @@ export class ShopScene extends Phaser.Scene {
     this.add
       .image(cx, DESIGN.height / 2, 'vignette')
       .setDisplaySize(DESIGN.width, DESIGN.height)
+      .setAlpha(0.5)
       .setDepth(500);
 
     // 타이틀 (그림자로 무게감)
@@ -88,7 +89,7 @@ export class ShopScene extends Phaser.Scene {
       .text(cx, DESIGN.height * 0.09, '스킨 상점', {
         fontFamily: FONT.ui,
         fontSize: TEXT.resultSize,
-        color: css(PALETTE.white),
+        color: css(PALETTE.ink),
         fontStyle: 'bold',
       })
       .setOrigin(0.5)
@@ -104,7 +105,7 @@ export class ShopScene extends Phaser.Scene {
     const x = DESIGN.width - 150;
     const y = DESIGN.height * 0.05;
     const g = this.add.graphics().setDepth(DEPTH.hud - 1);
-    g.fillStyle(0x000000, 0.35);
+    g.fillStyle(0x4a3524, 0.92);
     g.fillRoundedRect(x - 34, y - 28, 170, 56, 18);
     g.lineStyle(2, 0xffffff, 0.09);
     g.strokeRoundedRect(x - 34, y - 28, 170, 56, 18);
@@ -153,7 +154,7 @@ export class ShopScene extends Phaser.Scene {
     card.add(g);
 
     // 칩 배경 — 장착 중이면 초록 테두리로 구분
-    g.fillStyle(0x000000, 0.35);
+    g.fillStyle(0x4a3524, 0.92);
     g.fillRoundedRect(-CARD.w / 2, -CARD.h / 2, CARD.w, CARD.h, CARD.r);
     if (equipped) g.lineStyle(3, HINT_STYLE.accent, 0.95);
     else g.lineStyle(2, 0xffffff, 0.09);
@@ -256,7 +257,7 @@ export class ShopScene extends Phaser.Scene {
   /** 하단 중앙 PLAY 칩 버튼 — 페이드아웃 후 게임 시작 (ResultScene 버튼 패턴) */
   private drawPlayButton(x: number, y: number): void {
     const chip = this.add.graphics().setDepth(DEPTH.hud - 1);
-    chip.fillStyle(0x000000, 0.35);
+    chip.fillStyle(0x4a3524, 0.92);
     chip.fillRoundedRect(x - 105, y - 32, 210, 64, 20);
     chip.lineStyle(2, 0xffffff, 0.09);
     chip.strokeRoundedRect(x - 105, y - 32, 210, 64, 20);

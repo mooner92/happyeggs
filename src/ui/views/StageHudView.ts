@@ -43,7 +43,7 @@ export class StageHudView {
     // HUD 칩 배경 (디자인 v1) — 반투명 라운드 바 (평균 표시 시 2줄 높이)
     const chipW = 340;
     const chipH = withAvg ? 96 : 62;
-    this.g.fillStyle(0x000000, 0.32);
+    this.g.fillStyle(0x4a3524, 0.9);
     this.g.fillRoundedRect(cx - chipW / 2, y - 31, chipW, chipH, 22);
     this.g.lineStyle(2, 0xffffff, 0.06);
     this.g.strokeRoundedRect(cx - chipW / 2, y - 31, chipW, chipH, 22);

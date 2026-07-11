@@ -196,6 +196,7 @@ export class GameScene extends Phaser.Scene {
     this.add
       .image(DESIGN.width / 2, DESIGN.height / 2, 'vignette')
       .setDisplaySize(DESIGN.width, DESIGN.height)
+      .setAlpha(0.5)
       .setDepth(DEPTH.gauge - 2);
 
     // 야간(열화상, M5) — 남색 오버레이 아래는 차갑게, 뜨거운 것(불꽃·조리 계란)만 위에서 밝게
@@ -307,7 +308,7 @@ export class GameScene extends Phaser.Scene {
     const btnPos = toPx(ANCHORS.resultButton);
     // 버튼 칩 배경 (디자인 v1 — 탭 타겟 시각화). 텍스트 좌표는 유지(히트 영역 불변)
     const btnChip = this.add.graphics().setDepth(DEPTH.hud - 1);
-    btnChip.fillStyle(0x000000, 0.32);
+    btnChip.fillStyle(0x4a3524, 0.9);
     btnChip.fillRoundedRect(btnPos.x - 186, btnPos.y - 12, 200, 56, 16);
     btnChip.lineStyle(2, 0xffffff, 0.07);
     btnChip.strokeRoundedRect(btnPos.x - 186, btnPos.y - 12, 200, 56, 16);

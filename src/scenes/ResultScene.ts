@@ -46,6 +46,7 @@ export class ResultScene extends Phaser.Scene {
     this.add
       .image(cx, DESIGN.height / 2, 'vignette')
       .setDisplaySize(DESIGN.width, DESIGN.height)
+      .setAlpha(0.5)
       .setDepth(500);
 
     // 타이틀 (그림자로 무게감)
@@ -75,7 +76,7 @@ export class ResultScene extends Phaser.Scene {
       .text(cx, DESIGN.height * 0.71, '평균 0.000', {
         fontFamily: FONT.ui,
         fontSize: TEXT.resultSize,
-        color: css(PALETTE.white),
+        color: css(PALETTE.ink),
       })
       .setOrigin(0.5);
     this.tweens.addCounter({
@@ -91,7 +92,7 @@ export class ResultScene extends Phaser.Scene {
         cx,
         DESIGN.height * 0.76,
         `최고 ${(data.best ?? avg).toFixed(3)}   서빙 ${data.served ?? 0}   실패 ${data.failed ?? 0}`,
-        { fontFamily: FONT.ui, fontSize: TEXT.hudSize, color: css(RESULT_STYLE.plateShade) },
+        { fontFamily: FONT.ui, fontSize: TEXT.hudSize, color: css(PALETTE.ink) },
       )
       .setOrigin(0.5);
 
@@ -136,7 +137,7 @@ export class ResultScene extends Phaser.Scene {
   private button(x: number, y: number, label: string, color: string, onTap: () => void): void {
     // 칩 배경 — 라운드 반투명 (디자인 v1, 탭 타겟을 도형으로 보여준다)
     const chip = this.add.graphics().setDepth(DEPTH.hud - 1);
-    chip.fillStyle(0x000000, 0.35);
+    chip.fillStyle(0x4a3524, 0.92);
     chip.fillRoundedRect(x - 105, y - 32, 210, 64, 20);
     chip.lineStyle(2, 0xffffff, 0.09);
     chip.strokeRoundedRect(x - 105, y - 32, 210, 64, 20);
